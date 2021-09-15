@@ -82,6 +82,7 @@ namespace com.jon_skoberne.UI
         #region RenderMode
         public void EnableMip()
         {
+            Debug.Log("Enabling MIP mode!");
             this.material.EnableKeyword("MODE_MIP");
             this.material.DisableKeyword("MODE_DVR");
             this.material.DisableKeyword("MODE_SRF");
@@ -90,6 +91,7 @@ namespace com.jon_skoberne.UI
 
         public void EnableDvr()
         {
+            Debug.Log("Enabling DVR mode!");
             this.material.DisableKeyword("MODE_MIP");
             this.material.EnableKeyword("MODE_DVR");
             this.material.DisableKeyword("MODE_SRF");
@@ -98,6 +100,7 @@ namespace com.jon_skoberne.UI
 
         public void EnableSur()
         {
+            Debug.Log("Enabling SRF mode!");
             this.material.DisableKeyword("MODE_MIP");
             this.material.DisableKeyword("MODE_DVR");
             this.material.EnableKeyword("MODE_SRF");
@@ -106,6 +109,7 @@ namespace com.jon_skoberne.UI
 
         public void EnableVol()
         {
+            Debug.Log("Enabling CINEMA mode!");
             this.material.DisableKeyword("MODE_MIP");
             this.material.DisableKeyword("MODE_DVR");
             this.material.DisableKeyword("MODE_SRF");
@@ -116,26 +120,31 @@ namespace com.jon_skoberne.UI
         #region FilteredData
         public void EnableNormalData()
         {
+            Debug.Log("Setting normal data!");
             this.material.SetTexture("_CompTopTex", ido.GetTexture3D(0));
         }
 
         public void EnableGaussData()
         {
+            Debug.Log("Setting gauss filtered data!");
             this.material.SetTexture("_CompTopTex", ido.GetTexture3D(1));
         }
 
         public void EnableNormalGradient()
         {
+            Debug.Log("Setting normal gradient!");
             this.material.SetTexture("_GradientTex", ido.GetTexture3DGradient(0));
         }
 
         public void EnableGaussGradient()
         {
+            Debug.Log("Setting gauss filtered gradient!");
             this.material.SetTexture("_GradientTex", ido.GetTexture3DGradient(1));
         }
 
         public void EnableSobelGradient()
         {
+            Debug.Log("Setting sobel generated gradient!");
             this.material.SetTexture("_GradientTex", ido.GetTexture3DGradient(2));
         }
         #endregion
@@ -143,18 +152,21 @@ namespace com.jon_skoberne.UI
         #region LightingMode
         public void DisableLighting()
         {
+            Debug.Log("Disable lighting!");
             this.material.DisableKeyword("LOCAL_LIGHTING_BP");
             this.material.DisableKeyword("LOCAL_LIGHTING_CT");
         }
 
         public void EnableBlinnPhong()
         {
+            Debug.Log("Enable Blinn Phong lighting!");
             this.material.EnableKeyword("LOCAL_LIGHTING_BP");
             this.material.DisableKeyword("LOCAL_LIGHTING_CT");
         }
 
         public void EnableCookTorrance()
         {
+            Debug.Log("Enable CookTorrance lighting!");
             this.material.DisableKeyword("LOCAL_LIGHTING_BP");
             this.material.EnableKeyword("LOCAL_LIGHTING_CT");
         }
@@ -163,18 +175,21 @@ namespace com.jon_skoberne.UI
         #region TransferFunction Sampling
         public void EnableTfNoSample()
         {
+            Debug.Log("Disable TF sampling!");
             this.material.DisableKeyword("TF1D_MODE");
             this.material.DisableKeyword("TF2D_MODE");
         }
 
         public void EnableTf1dSample()
         {
+            Debug.Log("Enable TF 1D sampling!");
             this.material.EnableKeyword("TF1D_MODE");
             this.material.DisableKeyword("TF2D_MODE");
         }
 
         public void EnableTf2dSample()
         {
+            Debug.Log("Enable TF 2D sampling!");
             this.material.DisableKeyword("TF1D_MODE");
             this.material.EnableKeyword("TF2D_MODE");
         }
@@ -184,57 +199,80 @@ namespace com.jon_skoberne.UI
 
         public void SetMinValue(SliderEventData data)
         {
+            Debug.Log("Setting min val: " + data.NewValue);
             this.material.SetFloat("_MinVal", data.NewValue);
         }
 
         public void SetMaxValue(SliderEventData data)
         {
+            Debug.Log("Setting max val: " + data.NewValue);
             this.material.SetFloat("_MaxVal", data.NewValue);
         }
 
         public void SetXRange(SliderEventData data)
         {
+            Debug.Log("Setting xrange val: " + data.NewValue);
             this.material.SetFloat("_XRange", data.NewValue);
         }
 
         public void SetYRange(SliderEventData data)
         {
+            Debug.Log("Setting yrange val: " + data.NewValue);
             this.material.SetFloat("_YRange", data.NewValue);
         }
 
         public void SetZRange(SliderEventData data)
         {
+            Debug.Log("Setting zrange val: " + data.NewValue);
             this.material.SetFloat("_ZRange", data.NewValue);
         }
 
         public void SetShineLight(SliderEventData data)
         {
+            Debug.Log("Setting light shine val: " + data.NewValue);
             this.material.SetFloat("_Shininess", data.NewValue);
         }
         
         public void SetPowerLight(SliderEventData data)
         {
+            Debug.Log("Setting light power val: " + data.NewValue);
             this.material.SetFloat("_LightPower", data.NewValue);
         }
 
         public void SetNumSteps(SliderEventData data)
         {
+            Debug.Log("Setting number of steps in raymarch: " + data.NewValue);
             this.material.SetInt("_NumSteps", Mathf.RoundToInt(data.NewValue));
         }
 
         public void SetSuperSampleScaleSteps(SliderEventData data)
         {
+            Debug.Log("Setting SS scale: " + data.NewValue);
             this.material.SetInt("_ScaleSuperSample", Mathf.RoundToInt(data.NewValue));
         }
 
         public void SetG(SliderEventData data)
         {
+            Debug.Log("Setting G for CINEMA mode: " + data.NewValue);
             this.material.SetFloat("_G", data.NewValue);
         }
 
         public void SetSigmaT(SliderEventData data)
         {
+            Debug.Log("Setting SigmaT for CINEMA mode: " + data.NewValue);
             this.material.SetFloat("_SigmaT", data.NewValue);
+        }
+
+        public void SetCinemaRayNumber(SliderEventData data)
+        {
+            Debug.Log("Setting RayNumber for CINEMA mode: " + data.NewValue);
+            this.material.SetFloat("_RayNumber", data.NewValue);
+        }
+
+        public void SetCinemaRayBounces(SliderEventData data)
+        {
+            Debug.Log("Setting RayBounces for CINEMA mode: " + data.NewValue);
+            this.material.SetFloat("_RayBounces", data.NewValue);
         }
 
         public void SetLightColor()
@@ -260,6 +298,7 @@ namespace com.jon_skoberne.UI
             value[1] = col.g;
             value[2] = col.b;
             value[3] = sliders_color[3].CurrentValue();
+            Debug.Log("Setting Light Color: " + value);
             this.material.SetVector(LightColorShaderName, value);
         }
 
@@ -270,6 +309,7 @@ namespace com.jon_skoberne.UI
             {
                 value[i] = sliders_position[i].CurrentValue();
             }
+            Debug.Log("Setting Light Position: " + value);
             this.material.SetVector(LightPositionShaderName, value);
         }
 
