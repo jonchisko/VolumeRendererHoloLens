@@ -584,8 +584,8 @@
                     float3 abs_xyz = getAbsFloat3(currentPos);
                     if (abs_xyz.x > _XRange || abs_xyz.y > _YRange || abs_xyz.z > _ZRange) { // TODO: you have to change this, because changing this range, also removes the back fase since its absoulte!!!!
                         // object space cube goes from -0.5 to 0.5 with one unit size
-                        // if you use less than 0.5, obviously you dont see anything, because you discard at the entry already!
-                       break;
+                        // if you use less than 0.5, obviously you dont see anything, because you discard at the entry already! That s why continue might be a better choice
+                       continue;
                     } // dont sample if we are outside the unit box bounds
                     const float density = getDensity(currentPos);
                     const float gradient = getGradient(currentPos);
@@ -640,7 +640,7 @@
                     const float3 currentPos = rayStartPos + t * rayDir;
                     float3 abs_xyz = getAbsFloat3(currentPos);
                     if (abs_xyz.x > _XRange || abs_xyz.y > _YRange || abs_xyz.z > _ZRange) {
-                        break;
+                        continue;
                     } // dont sample if we are outside the unit box bounds
 
 
@@ -689,7 +689,7 @@
                     const float3 currentPos = rayStartPos + t * rayDir;
                     float3 abs_xyz = getAbsFloat3(currentPos);
                     if (abs_xyz.x > _XRange || abs_xyz.y > _YRange || abs_xyz.z > _ZRange) {
-                        break;
+                        continue;
                     } // dont sample if we are outside the unit box bounds
                     const float density = getDensity(currentPos);
 
@@ -794,7 +794,7 @@
             {
                 float4 final_result = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 int number_samples = pow(2, _ScaleSuperSample);
-                /*
+                
                 for (int ind = 0; ind < number_samples; ind++) {
 #if MODE_DVR
                     final_result += frag_dvr(i);
@@ -805,7 +805,7 @@
 #elif MODE_MIP
                     final_result += frag_mip(i);
 #endif
-                }*/
+                }
                 return final_result / number_samples;
             }
 

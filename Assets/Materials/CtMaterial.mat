@@ -9,8 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CtMaterial
   m_Shader: {fileID: 4800000, guid: 510cac89752294449bcc7d8f9b52b485, type: 3}
-  m_ShaderKeywords: LIGHTNING_OFF LIGHTNING_ON LOCAL_LIGHTNING_BP LOCAL_LIGHTNING_CT
-    MODE_DRV MODE_DVR2 MODE_MIP TF1D_ENABLED WHITE_MODE
+  m_ShaderKeywords: LIGHTNING_OFF LIGHTNING_ON LOCAL_LIGHTING_BP LOCAL_LIGHTNING_BP
+    LOCAL_LIGHTNING_CT MODE_DRV MODE_DVR2 MODE_MIP TF1D_ENABLED WHITE_MODE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -81,41 +81,41 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _G: -1
+    - _G: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _LightPower: 0
+    - _LightPower: 0.7192621
     - _MaxDensityVal: 1.1
-    - _MaxVal: 1.1
+    - _MaxVal: 0.3078034
     - _Metallic: 0
-    - _MinVal: 0
+    - _MinVal: 0.102969736
     - _Mode: 0
-    - _NumSteps: 1
+    - _NumSteps: 6736
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _RayBounces: 50
     - _RayNumber: 50
-    - _ScaleSuperSample: 1
-    - _Shininess: 1
+    - _ScaleSuperSample: 0
+    - _Shininess: 4.0854435
     - _SigmaA: 0.3
     - _SigmaS: 0.7
-    - _SigmaT: 0.1
+    - _SigmaT: 91.170006
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _XRange: 0
-    - _YRange: 0
-    - _ZRange: 0
+    - _XRange: 0.24097507
+    - _YRange: 0.19721809
+    - _ZRange: 0.31293836
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _LightColor: {r: 0, g: 0, b: 0, a: 0}
+    - _LightColor: {r: 0, g: 0.85324574, b: 0.4810696, a: 1}
     - _LightDirection: {r: 1, g: 0, b: 1, a: 0}
-    - _LightPosition: {r: -10, g: -10, b: -10, a: 1}
-    - _Plane: {r: -0.6229259, g: 0.47946456, b: 0.6181238, a: -1.7354563}
+    - _LightPosition: {r: 2.0000005, g: 2.0000005, b: 2.0000005, a: 1}
+    - _Plane: {r: 0, g: 1, b: 0, a: 0.742}
     - _PlaneBottom: {r: 0, g: -0.000000119209275, b: 1, a: 0.38400012}
     - _PlaneLeft: {r: -1, g: -0.00000023841852, b: 0, a: 0.8260004}
     - _PlaneRight: {r: -1, g: 0.00000023841852, b: -0, a: 0.6590003}
