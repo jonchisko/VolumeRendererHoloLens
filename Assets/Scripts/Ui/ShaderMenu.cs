@@ -266,13 +266,13 @@ namespace com.jon_skoberne.UI
         public void SetCinemaRayNumber(SliderEventData data)
         {
             Debug.Log("Setting RayNumber for CINEMA mode: " + data.NewValue);
-            this.material.SetFloat("_RayNumber", data.NewValue);
+            this.material.SetInt("_RayNumber", Mathf.RoundToInt(data.NewValue));
         }
 
         public void SetCinemaRayBounces(SliderEventData data)
         {
             Debug.Log("Setting RayBounces for CINEMA mode: " + data.NewValue);
-            this.material.SetFloat("_RayBounces", data.NewValue);
+            this.material.SetInt("_RayBounces", Mathf.RoundToInt(data.NewValue));
         }
 
         public void SetLightColor()

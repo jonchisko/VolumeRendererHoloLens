@@ -26,6 +26,8 @@
         _G("G_phaseFunctionHG", Range(-1, 1)) = 0
         _MaxDensityVal("MaxDesnityVal", Range(0.0, 1.1)) = 1
         _SigmaT("SigmaT", Range(0.1, 10000)) = 10
+        _RayNumber("RayNumber", Range(1, 2000)) = 50
+        _RayBounces("RayBounces", Range(1, 200)) = 50
     }
     SubShader
     {
@@ -110,6 +112,8 @@
 
             float _MaxDensityVal;
             float _SigmaT;
+            int _RayNumber;
+            int _RayBounces;
 
             // helper functions
             /*
@@ -547,20 +551,13 @@
                 float3 rayDir = -normalize(i.vectorToSurface);
                 float3 rayStartPos = getOffsetPosition(i, rayDir);
 
-                // similar to surface
-                /*float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
-
-                rayStartPos = rayStartPos + (StepSize * _NumSteps) * rayDir;
-                rayDir = -rayDir;*/
-
                 float4 radiance = float4(0, 0, 0, 0);
 
-                for (int s = 0; s < 100; s++) {
-                    radiance += Li(rayStartPos, rayDir, 40, i.vertex);
+                for (int s = 0; s < _RayNumber; s++) {
+                    radiance += Li(rayStartPos, rayDir, _RayBounces, i.vertex);
                 }
-                //radiance = float4(radiance.x, radiance.y, radiance.z, 1.0f); //// TEMPORARY FIX, THIS IS A HACK!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                return radiance / 100; // TEMPORARY FIX, should match num of rays
+
+                return radiance / _RayNumber;
             }
 
 
