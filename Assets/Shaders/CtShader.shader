@@ -21,7 +21,7 @@
         _LightPower("LightPower", Range(0.0, 10.0)) = 1.0
 
         _NumSteps("NumberOfSamplesAlongRay", Range(1, 10000)) = 512
-        _ScaleSuperSample("ScaleSuperSample", Range(1, 10)) = 0
+        _ScaleSuperSample("ScaleSuperSample", Range(0, 10)) = 0
 
         _G("G_phaseFunctionHG", Range(-1, 1)) = 0
         _MaxDensityVal("MaxDesnityVal", Range(0.0, 1.1)) = 1
