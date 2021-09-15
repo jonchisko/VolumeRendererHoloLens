@@ -43,7 +43,7 @@
         Pass
         {
             CGPROGRAM
-            #pragma multi_compile MODE_DVR MODE_MIP MODE_SRF MODE_CINEMA MODE_DVR2
+            #pragma multi_compile MODE_DVR MODE_MIP MODE_SRF MODE_CINEMA
             #pragma multi_compile __ TF1D_MODE TF2D_MODE
             #pragma multi_compile __ LOCAL_LIGHTING_BP LOCAL_LIGHTING_CT
             #pragma multi_compile __ CLIP
@@ -805,8 +805,6 @@
                     final_result += frag_surf_r(i);
 #elif MODE_CINEMA
                     //final_result += frag_volpath(i);
-#elif MODE_DVR2
-                    final_result += frag_dvr_2(i);
 #elif MODE_MIP
                     final_result += frag_mip(i);
 #endif
