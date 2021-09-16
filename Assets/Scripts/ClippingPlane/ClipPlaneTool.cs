@@ -8,7 +8,8 @@ namespace com.jon_skoberne.Volume
 
         [SerializeField]
         private ClipingPlane clipPlane;
-
+        [SerializeField]
+        private Transform volumeCube;
 
         public void ToggleClipPlaneMeshRenderer()
         {
@@ -19,6 +20,11 @@ namespace com.jon_skoberne.Volume
         {
             // enable clip plane
             clipPlane.gameObject.SetActive(clipPlane.gameObject.activeSelf ? false : true);
+        }
+
+        public void ResetClipPlanePosition()
+        {
+            clipPlane.SetTransform(volumeCube.transform);
         }
     }
 }

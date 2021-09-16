@@ -57,6 +57,12 @@ namespace com.jon_skoberne.Volume
         {
             return GetComponent<MeshRenderer>().enabled;
         }
+
+        public void SetTransform(Transform trans)
+        {
+            this.transform.position = trans.position;
+            this.transform.rotation = Quaternion.identity;
+        }
     }
 }
 

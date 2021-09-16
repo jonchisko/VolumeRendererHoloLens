@@ -10392,6 +10392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   clipPlane: {fileID: 568186597}
+  volumeCube: {fileID: 1919939112}
 --- !u!1001 &1874082630
 PrefabInstance:
   m_ObjectHideFlags: 0
