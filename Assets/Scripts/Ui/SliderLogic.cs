@@ -2,9 +2,9 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System;
-
-
-
+using System.Globalization;
+using System.Collections;
+using TMPro;
 
 namespace com.jon_skoberne.UI
 {
@@ -39,6 +39,13 @@ namespace com.jon_skoberne.UI
             return this.val;
         }
 
+        public void SetVal(float val)
+        {
+            Debug.Assert(min < max, "Slider Logic Value, min must strictly be less than max!");
+            Debug.Assert(min <= val && max >= val, "Slider Logic Value, val must be GE to min and LE to max!");
+            this.val = val;
+        }
+
         public float GetFraction()
         {
             return (this.val - this.min) / this.delta;
@@ -55,6 +62,11 @@ namespace com.jon_skoberne.UI
 
     public class SliderLogic : MonoBehaviour
     {
+        [SerializeField]
+        private GameObject error;
+        [SerializeField]
+        private float errorShowSec = 5.0f;
+        private Coroutine errorCoroutine;
 
         public PinchSlider slider;
         public SliderLogicEvent changedValue;
@@ -104,6 +116,54 @@ namespace com.jon_skoberne.UI
         public float CurrentValue()
         {
             return this.currentValue.GetVal();
+        }
+
+        public void OnDictatedText(string text)
+        {
+            Debug.Log("Voice Slider: text received: " + text);
+            char[] charsToTrim = { '*', ' ', '\'', '.', ':', '\n' };
+            text = text.Trim(charsToTrim);
+
+            float result = this.minValue;
+            bool valid = false;
+            if (text.StartsWith("-"))
+            {
+                var number = text.Split(' ')[1];
+                valid = float.TryParse(number, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture.NumberFormat, out result);
+                result *= -1;
+            } else
+            {
+                valid = float.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture.NumberFormat, out result);
+            } 
+            
+            if (valid)
+            {
+                Debug.Log("Voice Slider: Changing slider value: " + result);
+                if (errorCoroutine != null)
+                {
+                    StopCoroutine("ShowError");
+                    error.SetActive(false);
+                }
+                result = Mathf.Clamp(result, this.minValue, this.maxValue);
+                this.currentValue.SetVal(result);
+                slider.SliderValue = this.currentValue.GetFraction();
+            }
+        }
+
+        public void OnDictatedError(string text)
+        {
+            // show error text bellow slider!
+            Debug.Log("Voice Slider: error received: " + text);
+            error.GetComponent<TextMeshProUGUI>().text = text;
+            if (errorCoroutine != null) errorCoroutine = StartCoroutine("ShowError");
+        }
+
+
+        IEnumerable ShowError()
+        {
+            error.SetActive(true);
+            yield return new WaitForSeconds(errorShowSec);
+            error.SetActive(false);
         }
     }
 }
