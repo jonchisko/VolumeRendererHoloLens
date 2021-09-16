@@ -66,7 +66,7 @@ namespace com.jon_skoberne.UI
         private GameObject error;
         [SerializeField]
         private float errorShowSec = 5.0f;
-        private Coroutine errorCoroutine;
+        private IEnumerator errorCoroutine;
 
         public PinchSlider slider;
         public SliderLogicEvent changedValue;
@@ -154,14 +154,15 @@ namespace com.jon_skoberne.UI
         {
             // show error text bellow slider!
             Debug.Log("Voice Slider: error received: " + text);
-            error.GetComponent<TextMeshProUGUI>().text = text;
-            if (errorCoroutine != null) errorCoroutine = StartCoroutine("ShowError");
+            errorCoroutine = ShowError(text);
+            if (errorCoroutine != null) StartCoroutine(errorCoroutine);
         }
 
 
-        IEnumerable ShowError()
+        IEnumerator ShowError(string text)
         {
             error.SetActive(true);
+            error.GetComponent<TextMeshPro>().text = text;
             yield return new WaitForSeconds(errorShowSec);
             error.SetActive(false);
         }

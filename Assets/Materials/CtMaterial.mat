@@ -81,40 +81,40 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _G: 0
+    - _G: 0.000000029802322
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _LightPower: 0.9036645
+    - _LightPower: 1
     - _MaxDensityVal: 1.1
-    - _MaxVal: 1.0016289
+    - _MaxVal: 1.0999999
     - _Metallic: 0
-    - _MinVal: 0.1427469
+    - _MinVal: 0.000000063642375
     - _Mode: 0
-    - _NumSteps: 3050
+    - _NumSteps: 1000
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _RayBounces: 50
     - _RayNumber: 50
     - _ScaleSuperSample: 0
-    - _Shininess: 5.0412865
+    - _Shininess: 1
     - _SigmaA: 0.3
     - _SigmaS: 0.7
-    - _SigmaT: 1
+    - _SigmaT: 50
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _XRange: 0.5
-    - _YRange: 0.5
-    - _ZRange: 0.5
+    - _YRange: -2
+    - _ZRange: -2
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 0, g: 0.9999995, b: 1, a: 1}
     - _LightDirection: {r: 1, g: 0, b: 1, a: 0}
-    - _LightPosition: {r: -10, g: 10, b: 2.0000005, a: 1}
+    - _LightPosition: {r: 2.0000005, g: 2.0000005, b: 2.0000005, a: 1}
     - _Plane: {r: 0, g: 1, b: 0, a: -0.6704997}
     - _PlaneBottom: {r: 0, g: -0.000000119209275, b: 1, a: 0.38400012}
     - _PlaneLeft: {r: -1, g: -0.00000023841852, b: 0, a: 0.8260004}
