@@ -115,7 +115,7 @@ Material:
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
     - _LightDirection: {r: 1, g: 0, b: 1, a: 0}
     - _LightPosition: {r: -10, g: 10, b: 2.0000005, a: 1}
-    - _Plane: {r: 0, g: 1, b: 0, a: -0.56622887}
+    - _Plane: {r: 0, g: 1, b: 0, a: -0.09070165}
     - _PlaneBottom: {r: 0, g: -0.000000119209275, b: 1, a: 0.38400012}
     - _PlaneLeft: {r: -1, g: -0.00000023841852, b: 0, a: 0.8260004}
     - _PlaneRight: {r: -1, g: 0.00000023841852, b: -0, a: 0.6590003}

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Microsoft.MixedReality.Toolkit.UI;
+using UnityEngine;
 
 
 namespace com.jon_skoberne.Volume
@@ -13,13 +14,19 @@ namespace com.jon_skoberne.Volume
 
         public void ToggleClipPlaneMeshRenderer()
         {
-            clipPlane.ToggleMeshRenderer(clipPlane.IsVisible() ? false : true);
+            bool active = clipPlane.IsVisible() ? false : true;
+            clipPlane.ToggleMeshRenderer(active);
+            // if visible, no constraints, if not visible, constrain movement!
+            clipPlane.GetComponent<MoveAxisConstraint>().enabled = !active;
+            clipPlane.GetComponent<RotationAxisConstraint>().enabled = !active;
         }
 
         public void ToggleClipPlane()
         {
             // enable clip plane
-            clipPlane.gameObject.SetActive(clipPlane.gameObject.activeSelf ? false : true);
+            bool active = clipPlane.gameObject.activeSelf ? false : true;
+            clipPlane.gameObject.SetActive(active);
+
         }
 
         public void ResetClipPlanePosition()
