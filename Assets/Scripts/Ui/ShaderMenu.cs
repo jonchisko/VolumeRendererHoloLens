@@ -34,7 +34,7 @@ namespace com.jon_skoberne.UI
 
         private void InitCubeMaterial()
         {
-            ido = Resources.Load<ImageDataObject>("VolumeData/LoadedImageObject");
+            ido = Resources.Load<ImageDataObject>("VolumeData/" + VolumeAssetNames.imageObject);
             Renderer mt = this.volumeCube.GetComponent<Renderer>();
             mt.sharedMaterial = this.material;
             SetRandomTextureInShader();
