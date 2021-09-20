@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TransferDrawMaterial
+  m_Name: TransferDrawMaterialColor
   m_Shader: {fileID: 4800000, guid: 9735434cc05391e4882cb03cc6f1e713, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

@@ -1,0 +1,69 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+RWStructuredBuffer<float2> _PointColorsRxRy;
+RWStructuredBuffer<float> _PointColorsElipseWeights;
+RWStructuredBuffer<float2> _PointColorsPositions;
+RWStructuredBuffer<float4> _PointColorsColors;
+
+
+int _NumColPoints;
+int _Width;
+int _Height;
+bool _OpMode;
+
+// Helper functions
+
+float ellipsoidEquation(float x, float y, float ellipsoidX, float ellipsoidY, float ellipsoidRX, float ellipsoidRY) {
+    float nom1 = (x - ellipsoidX) * (x - ellipsoidX);
+    float nom2 = (y - ellipsoidY) * (y - ellipsoidY);
+    return nom1 / (ellipsoidRX * ellipsoidRX) + nom2 / (ellipsoidRY * ellipsoidRY);
+}
+
+// END helper functions
+[numthreads(16, 16, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+
+    float4 color = Result[id.xy];
+
+    if (_OpMode) {
+        color.w = 0.0f;
+        for (int i = 0; i < _NumColPoints; i++) {
+            float2 texPoint_pos = _PointColorsPositions[i];
+            float2 texPoint_elips = _PointColorsRxRy[i];
+            float weight = pow(abs(ellipsoidEquation((float)id.x, (float)id.y, texPoint_pos.x, texPoint_pos.y, texPoint_elips.x, texPoint_elips.y)), _PointColorsElipseWeights[i]);
+
+            float ratio = smoothstep(0.0f, 1.0f, weight);
+            float4 rgbw = lerp(_PointColorsColors[i], 0.0f, ratio);
+            /*float r = lerp(_PointColors[i].x, 0.0f, ratio);
+            float g = lerp(_PointColors[i].y, 0.0f, ratio);
+            float b = lerp(_PointColors[i].z, 0.0f, ratio);
+            float w = lerp(_PointColors[i].w, 0.0f, ratio);*/
+            color.w += rgbw.w;
+        }
+    }
+    else {
+        color.xyz = float3(0.0, 0.0, 0.0);
+        for (int i = 0; i < _NumColPoints; i++) {
+            float2 texPoint_pos = _PointColorsPositions[i];
+            float2 texPoint_elips = _PointColorsRxRy[i];
+            float weight = pow(abs(ellipsoidEquation((float)id.x, (float)id.y, texPoint_pos.x, texPoint_pos.y, texPoint_elips.x, texPoint_elips.y)), _PointColorsElipseWeights[i]);
+
+            float ratio = smoothstep(0.0f, 1.0f, weight);
+            float4 rgbw = lerp(_PointColorsColors[i], 0.0f, ratio);
+            /*float r = lerp(_PointColors[i].x, 0.0f, ratio);
+            float g = lerp(_PointColors[i].y, 0.0f, ratio);
+            float b = lerp(_PointColors[i].z, 0.0f, ratio);
+            float w = lerp(_PointColors[i].w, 0.0f, ratio);*/
+            color.xyz += rgbw.xyz;
+        }
+    }
+
+    Result[id.xy] = color;
+}
+

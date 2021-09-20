@@ -124,7 +124,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public delegate void OnPointClickDelegate(TransferFunctionPoint p);
         public static OnPointClickDelegate pointClickDelegate;
 
-        public SpriteRenderer pointImg;
+        public SpriteRenderer img;
         public GameObject selectedImg;
         public Interactable button;
 
@@ -140,7 +140,6 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         private void Awake()
         {
-            pointImg.color = color;
         }
 
 
@@ -176,7 +175,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public void SetColor(Color value)
         {
             color = value;
-            pointImg.color = value;
+            if(img != null) img.color = color;
         }
 
         public float GetPositionX()
@@ -212,12 +211,14 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         public void Select()
         {
-            selectedImg.SetActive(true);
+            selectedImg?.SetActive(true);
+            SetInteractivity(false);
         }
 
         public void Deselect()
         {
-            selectedImg.SetActive(false);
+            selectedImg?.SetActive(false);
+            SetInteractivity(true);
         }
 
         public void OnPointClick()
@@ -228,7 +229,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         public void SetInteractivity(bool value)
         {
-            button.enabled = value;
+            button.IsEnabled = value;
+            //button.enabled = value;
         }
 
         public void SetEndPoint(bool value)
@@ -244,6 +246,17 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public TransferFunctionSaveObject GetSaveObject()
         {
             return new TransferFunctionSaveObject(positionX, positionY, ellipsoid_rx, ellipsoid_ry, ellipsoid_weight, color.r, color.g, color.b, color.a, endPoint);
+        }
+
+        public void SetValuesFromSavedOject(TransferFunctionSaveObject so)
+        {
+            this.positionX = so.GetX();
+            this.positionY = so.GetY();
+            this.ellipsoid_rx = so.GetRx();
+            this.ellipsoid_ry = so.GetRy();
+            this.ellipsoid_weight = so.GetWeight();
+            this.color = so.GetColor();
+            this.endPoint = so.IsEndPoint();
         }
     }
 }

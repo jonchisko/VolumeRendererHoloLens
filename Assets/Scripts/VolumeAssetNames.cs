@@ -5,7 +5,9 @@ using UnityEngine;
 public class VolumeAssetNames
 {
     public static string imageObject = "LoadedImageObject";
-    
+
+    public static string savedImageObject = "_saved_image_object";
+
     public static string data3d = "data3d";
     public static string data3dGauss = "data3dGauss";
     public static string data3dGradient = "data3dGradient";
@@ -13,12 +15,12 @@ public class VolumeAssetNames
     public static string data3dGradientSobel = "data3dGradient_Sobel";
 
 
-    public static string tf1dName = "tf1d";
-    public static string tf1dOpacityName = "tf1d_opacity";
+    public static string tf1dName = "_tf1d";
+    public static string tf1dOpacityName = "_tf1d_opacity";
 
-    public static string tf2dName = "tf2d";
-    public static string tf2dOpacityName = "tf2d_opacity";
+    public static string tf2dName = "_tf2d";
+    public static string tf2dOpacityName = "_tf2d_opacity";
 
-    public static string tfElipseName = "tfElipse";
-    public static string tfElipseOpacityName = "tfElipse_opacity";
+    public static string tfEllipseName = "_tfElipse";
+    public static string tfEllipseOpacityName = "_tfElipse_opacity";
 }

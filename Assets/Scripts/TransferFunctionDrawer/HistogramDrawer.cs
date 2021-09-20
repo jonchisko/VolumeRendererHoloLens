@@ -17,7 +17,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
     {
         public MeshRenderer histogramPlane;
         public ComputeShader binCounter;
-        
+        public GameObject volumeCube;
+
         private Material histogramMaterial;
         private Mode drawMode = Mode.Lin;
         private int textureDimension = 2048;
@@ -38,7 +39,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             this.computedFlag = false;
 
             // how much "range" does each bucket cover
-            this.textureData = Resources.Load<Texture3D>("VolumeData/" + VolumeAssetNames.data3d);
+            this.textureData = (Texture3D)volumeCube.GetComponent<MeshRenderer>().sharedMaterial.GetTexture("_CompTopTex");
+            //this.textureData = Resources.Load<Texture3D>("VolumeData/" + VolumeAssetNames.data3d);
             this.renderTextureData = new RenderTexture(this.textureData.width, this.textureData.height, 0, RenderTextureFormat.RFloat);
             this.renderTextureData.volumeDepth = this.textureData.depth;
             this.renderTextureData.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
@@ -93,7 +95,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             {
                 Debug.Log("Expensive Histogram computation!");
                 ComputeBuffer bucketsBuffer = new ComputeBuffer(this.bucketValues.Length, sizeof(int));
-                bucketsBuffer.SetData(this.bucketValues);
+                //bucketsBuffer.SetData(this.bucketValues); no need
 
                 binCounter.SetBuffer(0, "_CountedBins", bucketsBuffer);
                 binCounter.SetFloat("_Delta", this.delta);
@@ -174,7 +176,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             this.histTexture.filterMode = FilterMode.Point;
             this.histTexture.Apply();
             // set texture as texture for histogram material
-            this.histogramMaterial.SetTexture("_TransferTexture", this.histTexture);
+            this.histogramMaterial.SetTexture("_MainTex", this.histTexture);
         }
 
         private int GetBucket(float density)

@@ -1,4 +1,4 @@
-﻿Shader "Unlit/ShowTransfer"
+﻿Shader "Unlit/ShowTransferOpacity"
 {
     Properties
     {
@@ -44,7 +44,7 @@
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-                return col;
+                return fixed4(col.w, col.w, col.w, 1);
             }
             ENDCG
         }

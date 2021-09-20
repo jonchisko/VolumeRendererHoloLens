@@ -41,8 +41,8 @@ namespace com.jon_skoberne.UI
 
         public void SetVal(float val)
         {
-            Debug.Assert(min < max, "Slider Logic Value, min must strictly be less than max!");
-            Debug.Assert(min <= val && max >= val, "Slider Logic Value, val must be GE to min and LE to max!");
+            Debug.Assert(min < max, "Slider Logic Value, min must strictly be less than max! Min: " + min + ", Max: " + max);
+            Debug.Assert(min <= val && max >= val, "Slider Logic Value, val must be GE to min and LE to max! Val: " + val + ", Min: " + min + ", Max: " + max);
             this.val = val;
         }
 
@@ -53,7 +53,7 @@ namespace com.jon_skoberne.UI
 
         public void SetValueWithFraction(float value)
         {
-            Debug.Assert(value >= 0.0 && value <= 1.0, "Value in Set Value must be between 0 and 1!");
+            Debug.Assert(value >= 0.0 && value <= 1.0, "Value in Set Value must be between 0 and 1! Value: " + value);
             float result = this.min + this.delta * value;
             if (toggleIntegers) result = Mathf.RoundToInt(result);
             this.val = result;
@@ -118,6 +118,18 @@ namespace com.jon_skoberne.UI
             return this.currentValue.GetVal();
         }
 
+        public void SetSliderValue(float value)
+        {
+            SetCurrentValue(value);
+        }
+
+        private void SetCurrentValue(float value)
+        {
+            value = Mathf.Clamp(value, this.minValue, this.maxValue);
+            this.currentValue.SetVal(value);
+            slider.SliderValue = this.currentValue.GetFraction();
+        }
+
         public void OnDictatedText(string text)
         {
             Debug.Log("Voice Slider: text received: " + text);
@@ -144,9 +156,7 @@ namespace com.jon_skoberne.UI
                     StopCoroutine("ShowError");
                     error.SetActive(false);
                 }
-                result = Mathf.Clamp(result, this.minValue, this.maxValue);
-                this.currentValue.SetVal(result);
-                slider.SliderValue = this.currentValue.GetFraction();
+                SetCurrentValue(result);
             }
         }
 

@@ -1,0 +1,121 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+RWStructuredBuffer<float2> _PointColorsPositions;
+RWStructuredBuffer<float4> _PointColorsColors;
+
+
+int _NumColPoints;
+int _Width;
+int _Height;
+bool _OpMode;
+
+struct BorderPoints {
+    int pointIndLow;
+    int pointIndHigh;
+};
+
+// Helper functions
+
+BorderPoints GetColBorderPoints(int currentX) {
+    BorderPoints result;
+    result.pointIndLow = 0;
+    result.pointIndHigh = 0;
+
+    int distanceLowBorder = 2 * _Width;
+    int distanceHighBorder = 2 * _Width;
+
+    for (int i = 0; i < _NumColPoints; i++) {
+        float2 pos_i = _PointColorsPositions[i];
+        int distance = abs((int)pos_i.x - currentX);
+        if (pos_i.x <= currentX && distance < distanceLowBorder)
+        {
+            distanceLowBorder = distance;
+            result.pointIndLow = i;
+        }
+        if (pos_i.x >= currentX && distance < distanceHighBorder)
+        {
+            distanceHighBorder = distance;
+            result.pointIndHigh = i;
+        }
+    }
+
+    return result;
+}
+
+float GetWeight(float2 borderPoint1, float2 borderPoint2, int currentX)
+{
+    float denominator = abs(borderPoint2.x - borderPoint1.x);
+    float nominator = abs((float)currentX - borderPoint1.x);
+    if (denominator == 0)
+    {
+        return 1.0f;
+    }
+    return nominator / denominator;
+}
+
+
+float4 GetColInterpolatedColor(BorderPoints bp, int currentX) {
+    float weight = GetWeight(_PointColorsPositions[bp.pointIndLow], _PointColorsPositions[bp.pointIndHigh], currentX);
+    return _PointColorsColors[bp.pointIndLow] * (1.0f - weight) + _PointColorsColors[bp.pointIndHigh] * weight;
+}
+
+float ComputeCrossProduct2D(float2 v1, float2 v2)
+{
+    return v1.x * v2.y - v1.y * v2.x;
+}
+
+bool IsV2OnLeftSideOfV1(float2 v1, float2 v2)
+{
+    float crossProduct = ComputeCrossProduct2D(v1, v2);
+    return crossProduct > 0.0f;
+}
+
+bool IsColAboveLine(BorderPoints bp, int currentX, int currentY)
+{
+
+    float2 p1 = _PointColorsPositions[bp.pointIndLow];
+    float2 p2 = _PointColorsPositions[bp.pointIndHigh];
+
+    // edge case if point1 == point2
+    if (bp.pointIndLow == bp.pointIndHigh)
+    {
+        return currentY <= p1.y;
+    }
+
+    float2 p1p2 = p2 - p1;
+
+    float2 curPosVec = float2(currentX, currentY);
+    float2 p1CurPosVec = curPosVec - p1;
+    return !IsV2OnLeftSideOfV1(p1p2, p1CurPosVec);
+}
+
+// END helper functions
+[numthreads(16, 16, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+
+    float4 color = Result[id.xy];
+
+
+    if (_OpMode) {
+        BorderPoints bp = GetColBorderPoints(id.x);
+        float4 colorOfX = GetColInterpolatedColor(bp, id.x);
+        if (!IsColAboveLine(bp, id.x, id.y)) colorOfX = float4(0, 0, 0, 0);
+        color.w = colorOfX.w;
+    }
+    else {
+        BorderPoints bp = GetColBorderPoints(id.x);
+        float4 colorOfX = GetColInterpolatedColor(bp, id.x);
+        if (!IsColAboveLine(bp, id.x, id.y)) colorOfX = float4(0, 0, 0, 0);
+        color.xyz = colorOfX.xyz;
+    }
+
+    Result[id.xy] = color;
+}
+
+
