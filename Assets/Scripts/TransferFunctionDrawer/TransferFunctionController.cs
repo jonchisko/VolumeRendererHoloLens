@@ -342,9 +342,6 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                             positionsOpacitiesBuffer = null;
                             colorsOpacitiesBuffer.Release();
                             colorsOpacitiesBuffer = null;
-                        } else
-                        {
-                            this.transferFunctionTex = Texture2D.blackTexture;
                         }
                         break;
                     }
