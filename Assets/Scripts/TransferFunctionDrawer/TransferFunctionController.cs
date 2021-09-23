@@ -47,6 +47,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public ComputeShader csTf1d;
         public ComputeShader csTf2d;
         public ComputeShader csEllipse;
+        public ComputeShader csClear;
 
         [Header("Point Color Sliders")]
         public SliderLogic sliderPosX;
@@ -267,7 +268,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                     }
                 case TransferFunctionMode.Ellipse:
                     {
-                        if (tfPointsColors.Count > 0 && tfPointsOpacities.Count > 0)
+                        if (tfPointsColors.Count > 0)
                         {
                             Debug.Log("COMPUTE ELIPSE");
                             ComputeBuffer pointColorsRxRyBuffer = new ComputeBuffer(pointColorsRxRy.Length, 2 * sizeof(float));
@@ -306,9 +307,17 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                             positionsColorsBuffer = null;
                             colorsColorsBuffer.Release();
                             colorsColorsBuffer = null;
+                        } else
+                        {
+                            csClear.SetTexture(0, "Result", rt);
+                            csClear.SetBool("_OpMode", false);
+                            csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
 
+                            Graphics.CopyTexture(rt, transferFunctionTex);
+                        }
 
-
+                        if(tfPointsOpacities.Count > 0)
+                        {
                             ComputeBuffer pointOpacitiesRxRyBuffer = new ComputeBuffer(pointOpacitiesRxRy.Length, 2 * sizeof(float));
                             ComputeBuffer elipseOpacitiesWeightsBuffer = new ComputeBuffer(pointOpacitiesWeights.Length, sizeof(float));
                             ComputeBuffer positionsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesPositions.Length, 2 * sizeof(float));
@@ -343,6 +352,15 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                             colorsOpacitiesBuffer.Release();
                             colorsOpacitiesBuffer = null;
                         }
+                        else
+                        {
+                            csClear.SetTexture(0, "Result", rt);
+                            csClear.SetBool("_OpMode", true);
+                            csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+
+                            Graphics.CopyTexture(rt, transferFunctionTex);
+                        }
+
                         break;
                     }
 
