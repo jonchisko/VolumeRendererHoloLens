@@ -1687,7 +1687,7 @@ MonoBehaviour:
   volumeTrigger: {fileID: 387823492}
   volumeLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   stopNaNPropagation: 1
   finalBlitToCameraTarget: 0
   antialiasingMode: 0
@@ -2784,9 +2784,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 606773244}
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 606773246}
+        m_MethodName: OnCloseButton
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -3494,6 +3494,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36206378db2650d4db324e008797c5aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inType: 11
+  outType: 12
   titleText: {fileID: 844544029}
   contentText: {fileID: 1421612160}
 --- !u!1 &634383119
@@ -3807,6 +3809,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 802367575}
+  - component: {fileID: 802367576}
+  - component: {fileID: 802367577}
   m_Layer: 0
   m_Name: ConnectHoloLens
   m_TagString: Untagged
@@ -3839,6 +3843,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -40}
   m_SizeDelta: {x: 0, y: -80}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &802367576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 802367574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7691a1e60879adf4080d020d050b65a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inType: 11
+  outType: 12
+  cGroup: {fileID: 802367577}
+--- !u!225 &802367577
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 802367574}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &844544027
 GameObject:
   m_ObjectHideFlags: 0
@@ -4578,6 +4609,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1101285383}
   - component: {fileID: 1101285384}
+  - component: {fileID: 1101285385}
+  - component: {fileID: 1101285386}
   m_Layer: 0
   m_Name: VerticalElements
   m_TagString: Untagged
@@ -4630,6 +4663,33 @@ MonoBehaviour:
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!114 &1101285385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101285382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7691a1e60879adf4080d020d050b65a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inType: 11
+  outType: 12
+  cGroup: {fileID: 1101285386}
+--- !u!225 &1101285386
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101285382}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1139377977
 GameObject:
   m_ObjectHideFlags: 0
@@ -7291,7 +7351,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1999736919}
   - component: {fileID: 1999736920}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: PostProcess
   m_TagString: Untagged
   m_Icon: {fileID: 0}
