@@ -14,10 +14,5 @@ namespace com.jon_skoberne.UI
 
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
     }
 }
