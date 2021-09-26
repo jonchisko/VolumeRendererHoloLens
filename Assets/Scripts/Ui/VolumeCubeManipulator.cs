@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace com.jon_skoberne.Ui
+namespace com.jon_skoberne.UI
 {
     public class VolumeCubeManipulator : MonoBehaviour
     {

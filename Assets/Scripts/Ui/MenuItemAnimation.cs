@@ -7,6 +7,9 @@ namespace com.jon_skoberne.UI
 {
     public class MenuItemAnimation : MonoBehaviour
     {
+        public delegate void notifyFunction(MenuItemAnimation ele);
+        public static notifyFunction OnComplete;
+
         public LeanTweenType inType;
         public LeanTweenType outType;
         public CanvasGroup cGroup;
@@ -19,6 +22,7 @@ namespace com.jon_skoberne.UI
 
         public void EnableMenu()
         {
+            this.gameObject.SetActive(true);
             AnimateIn();
         }
 
@@ -36,6 +40,7 @@ namespace com.jon_skoberne.UI
         private void DisableMe()
         {
             this.gameObject.SetActive(false);
+            OnComplete?.Invoke(this);
         }
 
     }
