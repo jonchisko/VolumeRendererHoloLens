@@ -21,12 +21,6 @@ namespace com.jon_skoberne.UI
             RegisterEvents();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         private void OnDestroy()
         {
             DeregisterEvents();
