@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.XR.WSA;
 
 namespace com.jon_skoberne.UI
 {
@@ -45,6 +45,7 @@ namespace com.jon_skoberne.UI
         public void QuitToMenu()
         {
             // 0 is the first scene in build order: App entry point
+            HolographicRemoting.Disconnect();
             SceneManager.LoadScene(0);
         }
     }
