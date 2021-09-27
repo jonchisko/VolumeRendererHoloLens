@@ -25,8 +25,11 @@ namespace com.jon_skoberne.UI
         {
             SetTitle(titleText);
             SetContent(contentText);
-            EnableMe();
-            AnimateIntro();
+            if (!this.gameObject.activeSelf)
+            {
+                EnableMe();
+                AnimateIntro();
+            }
         }
 
         public void OnCloseButton()
