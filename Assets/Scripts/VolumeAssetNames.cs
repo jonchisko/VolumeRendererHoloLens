@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class VolumeAssetNames
 {
+    public static string assetFolderPath = "Assets/Resources/VolumeData/";
+
+    public static string imageObjectTypeName = "ImageDataObject";
     public static string imageObject = "LoadedImageObject";
 
     public static string savedImageObject = "_saved_image_object";

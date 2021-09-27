@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.WSA;
+using TMPro;
 
 namespace com.jon_skoberne.UI
 {
 
     public class ConnectionMenu : MonoBehaviour
     {
-
+        public TextMeshProUGUI textIp;
         public GameObject[] status;
         Coroutine statusChecker;
 
         // Start is called before the first frame update
         void Start()
         {
-
+            DisplayState();
         }
 
         private void OnDestroy()
@@ -23,10 +24,15 @@ namespace com.jon_skoberne.UI
             if (statusChecker != null) StopCoroutine(statusChecker);
         }
 
-        public void ConnectHololens(string text)
+        public void ConnectHololens()
         {
-            HolographicRemoting.Connect(text);
-            DisplayState();
+
+            HolographicRemoting.Connect(textIp.text);
+        }
+
+        public void DisconnectHololens()
+        {
+            HolographicRemoting.Disconnect();
         }
 
         private void DisplayState()
