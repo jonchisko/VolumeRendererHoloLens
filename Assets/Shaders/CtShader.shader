@@ -656,7 +656,7 @@
 #endif
 
 #if TF2D_MODE
-                    float4 src = getTF2DColor(density, length(maxGradient));
+                    float4 src = getTF2DColor(density, length(normal));
 #else
                     float4 src = getTF1DColor(density);
 #endif
@@ -704,7 +704,7 @@
 #endif
 
 #if TF2D_MODE
-                    float4 src = getTF2DColor(density, length(maxGradient));
+                    float4 src = getTF2DColor(density, length(normal));
 #else
                     float4 src = getTF1DColor(density);
 #endif
@@ -760,7 +760,7 @@
 #endif
 
 #if TF2D_MODE
-                        col = getTF2DColor(density, length(maxGradient));
+                        col = getTF2DColor(density, length(normal));
 #else
                         col = getTF1DColor(density);
 #endif

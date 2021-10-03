@@ -8,6 +8,42 @@ using com.jon_skoberne.HelperServices;
 
 namespace com.jon_skoberne.Reader 
 {
+    [System.Serializable]
+    public class SaveImageDataObject
+    {
+        public ItkReadFileSupport.ReadType readType;
+        public float[] dataArray;
+        public Color32[] tex3D;
+        public Color32[] tex3Dgauss;
+        public Color32[] tex3Dgradient;
+        public Color32[] tex3DgradientGauss;
+        public Color32[] tex3DgradientSobel;
+
+        public float minValue, maxValue;
+        public int dimX, dimY, dimZ;
+        public string filePath;
+
+        public SaveImageDataObject(ItkReadFileSupport.ReadType readType, float[] dataArray, Color32[] tex3D, Color32[] tex3Dgauss, Color32[] tex3Dgradient, Color32[] tex3DgradientGauss,
+            Color32[] tex3DgradientSobel, float minValue, float maxValue, int dimX, int dimY, int dimZ, string filePath)
+        {
+            this.readType = readType;
+            this.dataArray = dataArray;
+            this.tex3D = tex3D;
+            this.tex3Dgauss = tex3Dgauss;
+            this.tex3Dgradient = tex3Dgradient;
+            this.tex3DgradientGauss = tex3DgradientGauss;
+            this.tex3DgradientSobel = tex3DgradientSobel;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.dimX = dimX;
+            this.dimY = dimY;
+            this.dimZ = dimZ;
+            this.filePath = filePath;
+        }
+    }
+
+    [System.Serializable]
+    [CreateAssetMenu(fileName = "LoadedImageObject", menuName = "ImageData")]
     public class ImageDataObject : ScriptableObject
     {
 
@@ -105,6 +141,7 @@ namespace com.jon_skoberne.Reader
 
         private void InitializeValues(string filePathSource)
         {
+
             try
             {
                 ImageFileReader reader = new ImageFileReader();
@@ -166,28 +203,23 @@ namespace com.jon_skoberne.Reader
 
         public void SetTextures()
         {
-            Texture3D actualValues = ComputeTexture3D();
-            Texture3D gradientValues = ComputeTexture3DGradient();
-            AssetDatabase.CreateAsset(actualValues, "Assets/Resources/VolumeData/Texture3D/" + Path.GetFileNameWithoutExtension(GetFilePath()) + ".asset");
-            AssetDatabase.CreateAsset(gradientValues, "Assets/Resources/VolumeData/Texture3DGrad/" + Path.GetFileNameWithoutExtension(GetFilePath()) + "_grad" + ".asset");
-            tex3D = actualValues;
-            tex3Dgradient = gradientValues;
+            tex3D = ComputeTexture3D();
+            tex3Dgradient = ComputeTexture3DGradient();
 
+            tex3Dgauss = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RFloat, 0);
+            tex3DgradientGauss = GetFilteredTexture(tex3Dgradient.GetPixels(), TextureFormat.RGBAFloat, 0);
+            tex3DgradientSobel = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RGBAFloat, 1);
 
-            Texture3D t = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RFloat, false);
-            t.wrapMode = TextureWrapMode.Clamp;
-            t.SetPixels(Filters.FilterGPUTest(actualValues.GetPixels(), GetWidth(), GetHeight(), GetDepth()));
-            t.Apply();
-            AssetDatabase.CreateAsset(t, "Assets/Resources/VolumeData/Texture3D/" + Path.GetFileNameWithoutExtension(GetFilePath()) + "_shader_test_" + ".asset");
+            CreateAssetsFromTextures();
+        }
 
-            tex3Dgauss = GetFilteredTexture(actualValues.GetPixels(), TextureFormat.RFloat, 0);
-            tex3DgradientGauss = GetFilteredTexture(gradientValues.GetPixels(), TextureFormat.RGBAFloat, 0);
-            tex3DgradientSobel = GetFilteredTexture(actualValues.GetPixels(), TextureFormat.RGBAFloat, 1);
-
-            AssetDatabase.CreateAsset(tex3Dgauss, "Assets/Resources/VolumeData/Texture3D/" + Path.GetFileNameWithoutExtension(GetFilePath()) + "_gauss" + ".asset");
-            AssetDatabase.CreateAsset(tex3DgradientGauss, "Assets/Resources/VolumeData/Texture3DGrad/" + Path.GetFileNameWithoutExtension(GetFilePath()) + "_grad_gauss" + ".asset");
-            AssetDatabase.CreateAsset(tex3DgradientSobel, "Assets/Resources/VolumeData/Texture3DGrad/" + Path.GetFileNameWithoutExtension(GetFilePath()) + "_grad_sobel" + ".asset");
-
+        public void CreateAssetsFromTextures()
+        {
+            CreateTextureAsset(tex3D, VolumeAssetNames.data3d);
+            CreateTextureAsset(tex3Dgradient, VolumeAssetNames.data3dGradient);
+            CreateTextureAsset(tex3Dgauss, VolumeAssetNames.data3dGauss);
+            CreateTextureAsset(tex3DgradientGauss, VolumeAssetNames.data3dGradientGauss);
+            CreateTextureAsset(tex3DgradientSobel, VolumeAssetNames.data3dGradientSobel);
         }
 
         public void SetDimensions(Image image)
@@ -279,6 +311,37 @@ namespace com.jon_skoberne.Reader
             tex3DGradient.Apply();
 
             return tex3DGradient;
+        }
+
+        public SaveImageDataObject GetSerializableImageObject()
+        {
+            return new SaveImageDataObject(this.readType, this.dataArray, this.tex3D.GetPixels32(), this.tex3Dgauss.GetPixels32(),
+                this.tex3Dgradient.GetPixels32(), this.tex3DgradientGauss.GetPixels32(), this.tex3DgradientSobel.GetPixels32(),
+                this.minValue, this.maxValue, this.dimX, this.dimY, this.dimZ, this.filePath);
+        }
+
+        public void DeserializeIntoImageDataObject(SaveImageDataObject saveObject)
+        {
+            this.readType = saveObject.readType;
+            this.dataArray = saveObject.dataArray;
+            this.tex3D.SetPixels32(saveObject.tex3D);
+            this.tex3Dgauss.SetPixels32(saveObject.tex3Dgauss);
+            this.tex3Dgradient.SetPixels32(saveObject.tex3Dgradient);
+            this.tex3DgradientGauss.SetPixels32(saveObject.tex3DgradientGauss);
+            this.tex3DgradientSobel.SetPixels32(saveObject.tex3DgradientSobel);
+            this.minValue = saveObject.minValue;
+            this.maxValue = saveObject.maxValue;
+            this.dimX = saveObject.dimX;
+            this.dimY = saveObject.dimY;
+            this.dimZ = saveObject.dimZ;
+            this.filePath = saveObject.filePath;
+
+            CreateAssetsFromTextures();
+        }
+
+        private void CreateTextureAsset(Texture3D tex, string assetName)
+        {
+            AssetDatabase.CreateAsset(tex, VolumeAssetNames.assetFolderPath + assetName + ".asset");
         }
 
         private Color GetGradientCentralDifferences(int x, int y, int z, float range)
