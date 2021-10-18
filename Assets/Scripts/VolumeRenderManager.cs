@@ -1,4 +1,5 @@
-﻿using com.jon_skoberne.TransferFunctionDrawer;
+﻿using com.jon_skoberne.Reader;
+using com.jon_skoberne.TransferFunctionDrawer;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,7 @@ using UnityEngine;
 public class VolumeRenderManager : MonoBehaviour
 {
     public GameObject volumeCube;
+    public ImageDataObject ido;
     public Material ctMaterial;
     public Material tfMaterial;
 

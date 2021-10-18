@@ -1,0 +1,48 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Normalize
+#pragma kernel CalcGradient
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture3D<float4> InputImage;
+RWTexture3D<float4> OutputImage;
+
+RWStructuredBuffer<float> floatData;
+
+float minValue;
+float range;
+uint3 imgDims;
+
+
+
+float4 GetGradient(uint3 id)
+{
+    float currentValue = InputImage[id.xyz].x;
+    float datax1 = InputImage[uint3(max(id.x - 1, 0), id.y, id.z)].x;
+    float datax2 = InputImage[uint3(min(id.x + 1, imgDims.x - 1), id.y, id.z)].x;
+    
+    float datay1 = InputImage[uint3(id.x, max(id.y - 1, 0), id.z)].x;
+    float datay2 = InputImage[uint3(id.x, min(id.y + 1, imgDims.y - 1), id.z)].x;
+    
+    float dataz1 = InputImage[uint3(id.x, id.y, max(id.z - 1, 0))].x;
+    float dataz2 = InputImage[uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1))].x;
+
+    return float4((datax1 - datax2) / 2.0f, (datay1 - datay2) / 2.0f, (dataz1 - dataz2) / 2.0, currentValue);
+}
+
+
+
+[numthreads(8,8,8)]
+void Normalize(uint3 id: SV_DispatchThreadID)
+{
+    uint floatDataIndex = id.x + id.y * imgDims.x + id.z * (imgDims.x * imgDims.y);
+    float4 normalized = float4((floatData[floatDataIndex] - minValue) / range, 0.0f, 0.0f, 0.0f);
+    OutputImage[id.xyz] = normalized;
+}
+
+[numthreads(8,8,8)]
+void CalcGradient(uint3 id: SV_DispatchThreadID)
+{
+    OutputImage[id.xyz] = GetGradient(id);
+}
+

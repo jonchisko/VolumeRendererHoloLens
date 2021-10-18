@@ -1,0 +1,90 @@
+﻿#pragma kernel KernelXFilter
+#pragma kernel KernelYFilter
+#pragma kernel KernelZFilter
+#pragma kernel KernelZSobelFilter
+
+
+RWTexture3D<float4> InputImage;
+RWTexture3D<float4> OutputImage;
+
+uint3 imgDims;
+uint resultSobelInd = 0;
+
+// filter coefficients
+float4 coefficients = float4(0.25f * 1, 0.25f * 2, 0.25f * 1, 0.0f);
+
+
+// Helper functions
+float4 ComputeConv(float4 coefficients, float4 pixel1, float4 pixel2, float4 pixel3) 
+{
+    return coefficients[2] * pixel1 + coefficients[1] * pixel2 + coefficients[0] * pixel3;
+}
+
+
+// Filter kernels
+
+[numthreads(8, 8, 8)]
+void KernelXFilter(uint3 id: SV_DispatchThreadID) 
+{
+    uint3 elementfirst = uint3(clamp(id.x - 1, 0, imgDims.x - 1), id.y, id.z);
+    uint3 elementlast = uint3(clamp(id.x + 1, 0, imgDims.x - 1), id.y, id.z);
+
+    float4 firstPixel = InputImage[elementfirst];
+    float4 middlePixel = InputImage[id.xyz];
+    float4 lastPixel = InputImage[elementlast];
+
+    
+    //float4 elementsX = float4(InputImage[elementfirst].x, InputImage[id.xyz].x, InputImage[elementlast].x, 0.0f);
+    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+    OutputImage[id.xyz] = float4(result.xyz, result.w);
+}
+
+[numthreads(8, 8, 8)]
+void KernelYFilter(uint3 id: SV_DispatchThreadID)
+{
+    uint3 elementfirst = uint3(id.x, clamp(id.y - 1, 0, imgDims.y - 1), id.z);
+    uint3 elementlast = uint3(id.x, clamp(id.y + 1, 0, imgDims.y - 1), id.z);
+    
+    float4 firstPixel = InputImage[elementfirst];
+    float4 middlePixel = InputImage[id.xyz];
+    float4 lastPixel = InputImage[elementlast];
+
+    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+    OutputImage[id.xyz] = float4(result.xyz, result.w);
+}
+
+[numthreads(8, 8, 8)]
+void KernelZFilter(uint3 id: SV_DispatchThreadID)
+{
+    uint3 elementfirst = uint3(id.x, id.y, clamp(id.z - 1, 0, imgDims.z - 1));
+    uint3 elementlast = uint3(id.x, id.y, clamp(id.z + 1, 0, imgDims.z - 1));
+
+    float4 firstPixel = InputImage[elementfirst];
+    float4 middlePixel = InputImage[id.xyz];
+    float4 lastPixel = InputImage[elementlast];
+
+    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+    OutputImage[id.xyz] = float4(result.xyz, result.w);
+}
+
+[numthreads(8, 8, 8)]
+void KernelZSobelFilter(uint3 id: SV_DispatchThreadID)
+{
+    uint3 elementfirst = uint3(id.x, id.y, clamp(id.z - 1, 0, imgDims.z - 1));
+    uint3 elementlast = uint3(id.x, id.y, clamp(id.z + 1, 0, imgDims.z - 1));
+    
+    float4 firstPixel = InputImage[elementfirst];
+    float4 middlePixel = InputImage[id.xyz];
+    float4 lastPixel = InputImage[elementlast];
+
+    float4 convResult = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+
+    float4 result = OutputImage[id.xyz].xyzw;
+    
+    switch (resultSobelInd) {
+        case 0: result[0] = convResult.x; break;
+        case 1: result[1] = convResult.x; break;
+        case 2: result[2] = convResult.x; break;
+    }
+    OutputImage[id.xyz] = result;
+}

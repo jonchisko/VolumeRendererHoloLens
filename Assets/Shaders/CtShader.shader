@@ -127,7 +127,7 @@
             */
             float getDensity(float3 pos) 
             {
-                return tex3Dlod(_CompTopTex, float4(pos.xyz, 0.0f) + float4(0.5f, 0.5f, 0.5f, 0.0f));
+                return tex3Dlod(_CompTopTex, float4(pos.xyz, 0.0f) + float4(0.5f, 0.5f, 0.5f, 0.0f)).r;
             }
 
             float3 getGradient(float3 pos)

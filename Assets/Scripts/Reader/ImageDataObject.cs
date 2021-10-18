@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using itk.simple;
 using UnityEngine;
 using UnityEditor;
-using System.IO;
 using com.jon_skoberne.HelperServices;
 
 namespace com.jon_skoberne.Reader 
@@ -51,6 +50,10 @@ namespace com.jon_skoberne.Reader
         public static event ReadingEvent OnReadingError;
         public static event ReadingEvent OnReadingSuccess;
 
+
+        public ComputeShader imgCalculator;
+        public ComputeShader imgFilter;
+
         private float[] dataArray;
         public ItkReadFileSupport.ReadType readType;
         public ComputeShader csReading;
@@ -59,6 +62,11 @@ namespace com.jon_skoberne.Reader
         public Texture3D tex3Dgradient;
         public Texture3D tex3DgradientGauss;
         public Texture3D tex3DgradientSobel;
+
+        private RenderTexture rt1;
+        private RenderTexture rt2;
+        private RenderTexture rtNormData;
+        private RenderTexture rtSobel;
         
         public float minValue, maxValue;
         public int dimX, dimY, dimZ;
@@ -153,7 +161,11 @@ namespace com.jon_skoberne.Reader
                 ConvertPointerToArray(image);
                 SetDimensions(image);
                 SetMaxMinValues();
-                SetTextures();
+                //SetTextures();
+                //gpu
+                CreateRenderTextures();
+                Compute3DtexGPU();
+                //
                 OnReadingSuccess?.Invoke(this);
             }
             catch (Exception ex)
@@ -181,10 +193,11 @@ namespace com.jon_skoberne.Reader
             unsafe
             {
                 float* floatPointer = (float*)buffer.ToPointer();
-                for (int i = 0; i < length; i++)
+                Parallel.For(0, length, index => { imageFloatArray[index] = floatPointer[index]; });
+                /*for (int i = 0; i < length; i++)
                 {
                     imageFloatArray[i] = floatPointer[i];
-                }
+                }*/
             }
             this.dataArray = imageFloatArray;
         }
@@ -203,23 +216,70 @@ namespace com.jon_skoberne.Reader
 
         public void SetTextures()
         {
-            tex3D = ComputeTexture3D();
-            tex3Dgradient = ComputeTexture3DGradient();
+            this.tex3D = ComputeTexture3D();
+            this.tex3Dgradient = ComputeTexture3DGradient();
 
-            tex3Dgauss = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RFloat, 0);
-            tex3DgradientGauss = GetFilteredTexture(tex3Dgradient.GetPixels(), TextureFormat.RGBAFloat, 0);
-            tex3DgradientSobel = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RGBAFloat, 1);
+            this.tex3Dgauss = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RGBAFloat, 0);
+            this.tex3DgradientGauss = GetFilteredTexture(tex3Dgradient.GetPixels(), TextureFormat.RGBAFloat, 0);
+            this.tex3DgradientSobel = GetFilteredTexture(tex3D.GetPixels(), TextureFormat.RGBAFloat, 1);
 
-            CreateAssetsFromTextures();
+            //CreateAssetsFromTextures();
         }
 
         public void CreateAssetsFromTextures()
         {
-            CreateTextureAsset(tex3D, VolumeAssetNames.data3d);
-            CreateTextureAsset(tex3Dgradient, VolumeAssetNames.data3dGradient);
-            CreateTextureAsset(tex3Dgauss, VolumeAssetNames.data3dGauss);
-            CreateTextureAsset(tex3DgradientGauss, VolumeAssetNames.data3dGradientGauss);
-            CreateTextureAsset(tex3DgradientSobel, VolumeAssetNames.data3dGradientSobel);
+            CreateTextureAsset(this.tex3D, VolumeAssetNames.data3d);
+            CreateTextureAsset(this.tex3Dgradient, VolumeAssetNames.data3dGradient);
+            CreateTextureAsset(this.tex3Dgauss, VolumeAssetNames.data3dGauss);
+            CreateTextureAsset(this.tex3DgradientGauss, VolumeAssetNames.data3dGradientGauss);
+            CreateTextureAsset(this.tex3DgradientSobel, VolumeAssetNames.data3dGradientSobel);
+        }
+
+        private void CreateRenderTextures()
+        {
+            /*this.rt1.Release();
+            this.rt2.Release();
+            this.rtSobel.Release();
+            this.rtNormData.Release();*/
+
+
+            Debug.Log("Creating render textures!");
+            this.rt1 = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
+            this.rt1.volumeDepth = this.dimZ;
+            this.rt1.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            this.rt1.enableRandomWrite = true;
+            this.rt1.Create();
+
+            this.rt2 = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
+            this.rt2.volumeDepth = this.dimZ;
+            this.rt2.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            this.rt2.enableRandomWrite = true;
+            this.rt2.Create();
+
+            this.rtSobel = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
+            this.rtSobel.volumeDepth = this.dimZ;
+            this.rtSobel.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            this.rtSobel.enableRandomWrite = true;
+            this.rtSobel.Create();
+
+            this.rtNormData = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
+            this.rtNormData.volumeDepth = this.dimZ;
+            this.rtNormData.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            this.rtNormData.enableRandomWrite = true;
+            this.rtNormData.Create();
+        }
+
+        private void Compute3DtexGPU()
+        {
+            Debug.Log("Computing on gpu!");
+            this.tex3D = GetNormalizedDataGpu();
+            this.tex3Dgradient = GetCentralDiffGradientGpu();
+
+            this.tex3DgradientGauss = GetGaussFilterGpu(this.rt2, this.rt1, this.rtSobel);
+            this.tex3Dgauss = GetGaussFilterGpu(this.rtNormData, this.rt2, this.rtSobel);
+            this.tex3DgradientSobel = GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel);
+
+            //CreateAssetsFromTextures();
         }
 
         public void SetDimensions(Image image)
@@ -229,54 +289,9 @@ namespace com.jon_skoberne.Reader
             this.dimZ = (int)image.GetDepth();
         }
 
-        public RenderTexture GetRenderTexture(Image image) // TODO: convert everything to render texture and use compute shaders ??! ATM this is NOT used!
-        {
-            var input = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
-            var size = input.GetSize(); // example [256, 256]
-            int length = 1;
-            for (int dim = 0; dim < input.GetDimension(); dim++) // above example, dimension=2
-            {
-                length *= (int)size[dim];
-            }
-            // length is now dimension1 * dimension2 => 256*256 =aprox= 64k for above example
-            IntPtr buffer = input.GetBufferAsFloat();
-            float[] imageFloatArray = new float[length];
-            /*
-             * It's a terminology error, depth is not volumeDepth, so in 
-             * RenderTexture constructor use two dimension and depth 0 (depth buffer, is not volumeDepth/slice)
-             * url: https://answers.unity.com/questions/1611445/3d-rendertextures-with-depth-not-supported.html
-             */
-            RenderTexture tex3D = new RenderTexture((int)input.GetWidth(), (int)input.GetHeight(), 0, RenderTextureFormat.RFloat)
-            {
-                enableRandomWrite = true,
-                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
-                volumeDepth = (int)input.GetDepth()
-            };
-            tex3D.Create();
-            /* Access the underlying buffer in unsafe block - the compiler cannot 
-             * perform full type checking and we can use pointers
-             */
-            unsafe 
-            {
-                float* bufferPtr = (float*)buffer.ToPointer();
-                // linear indx
-                Parallel.For(0, length, index => { imageFloatArray[index] = bufferPtr[index]; });
-                int kernelHandle = csReading.FindKernel("CSWriteTexture");
-                ComputeBuffer dataBuffer = new ComputeBuffer(length, 1 * sizeof(float));
-                dataBuffer.SetData(imageFloatArray);
-                csReading.SetBuffer(kernelHandle, "input", dataBuffer);
-                csReading.SetTexture(kernelHandle, "outputTexture3D", tex3D);
-                csReading.SetInt("_InputSize", length);
-                csReading.SetVector("_Dimensions", new Vector4(size[0], size[1], size[2], 0));
-                csReading.Dispatch(kernelHandle, Mathf.CeilToInt(length / 1024.0f), 1, 1); // 1024 num of threads on gpu in 1 block
-                dataBuffer.Dispose();
-            }
-            return tex3D;
-        }
-
         public Texture3D ComputeTexture3D()
         {
-            Texture3D tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RFloat, false);
+            Texture3D tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
             tex3D.wrapMode = TextureWrapMode.Clamp;
 
             Color[] cols = new Color[this.dataArray.Length];
@@ -373,6 +388,157 @@ namespace com.jon_skoberne.Reader
             return tex3D;
         }
 
+        private Texture3D GetNormalizedDataGpu()
+        {
+            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
+            texture3d.wrapMode = TextureWrapMode.Clamp;
+
+
+            ComputeBuffer floatdataBuffer = new ComputeBuffer(this.dataArray.Length, 1 * sizeof(float));
+            floatdataBuffer.SetData(this.dataArray);
+
+            int kernelid = imgCalculator.FindKernel("Normalize");
+
+            imgCalculator.SetBuffer(kernelid, "floatData", floatdataBuffer);
+
+            imgCalculator.SetFloat("minValue", this.minValue);
+            imgCalculator.SetFloat("range", this.maxValue - this.minValue);
+            imgCalculator.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
+
+            imgCalculator.SetTexture(kernelid, "OutputImage", this.rtNormData);
+            imgCalculator.Dispatch(kernelid, this.rtNormData.width / 8, this.rtNormData.height / 8, this.rtNormData.volumeDepth / 8);
+
+            Graphics.CopyTexture(this.rtNormData, texture3d);
+
+            floatdataBuffer.Release();
+            floatdataBuffer = null;
+
+            return texture3d;
+        }
+
+        private Texture3D GetCentralDiffGradientGpu()
+        {
+            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
+            texture3d.wrapMode = TextureWrapMode.Clamp;
+
+            int kernelid = imgCalculator.FindKernel("CalcGradient");
+
+
+            imgCalculator.SetFloat("minValue", this.minValue);
+            imgCalculator.SetFloat("range", this.maxValue - this.minValue);
+            imgCalculator.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
+
+            imgCalculator.SetTexture(kernelid, "InputImage", this.rtNormData);
+            imgCalculator.SetTexture(kernelid, "OutputImage", this.rt2);
+            imgCalculator.Dispatch(kernelid, this.rt2.width / 8, this.rt2.height / 8, this.rt2.volumeDepth / 8);
+
+            Graphics.CopyTexture(this.rt2, texture3d);
+
+            return texture3d;
+        }
+
+        private Texture3D GetGaussFilterGpu(RenderTexture firstTex, RenderTexture secondTex, RenderTexture tmpTex)
+        {
+            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
+            texture3d.wrapMode = TextureWrapMode.Clamp;
+
+            int kernelidX = imgFilter.FindKernel("KernelXFilter");
+            int kernelidY = imgFilter.FindKernel("KernelYFilter");
+            int kernelidZ = imgFilter.FindKernel("KernelZFilter");
+
+            imgFilter.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
+            imgFilter.SetFloats("coefficients", 0.25f * 1, 0.25f * 2, 0.25f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidX, "InputImage", firstTex); // first call will use this.rt2 from the gradient result, second will use normalized data
+            imgFilter.SetTexture(kernelidX, "OutputImage", tmpTex);
+            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetTexture(kernelidY, "InputImage", tmpTex);
+            imgFilter.SetTexture(kernelidY, "OutputImage", secondTex);
+            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            
+            imgFilter.SetTexture(kernelidZ, "InputImage", secondTex);
+            imgFilter.SetTexture(kernelidZ, "OutputImage", firstTex);
+            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            Graphics.CopyTexture(secondTex, texture3d);
+
+            return texture3d;
+        }
+
+        private Texture3D GetSobelFilterGpu(RenderTexture firstTex, RenderTexture secondTex, RenderTexture sobelSpecial)
+        {
+            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
+            texture3d.wrapMode = TextureWrapMode.Clamp;
+
+            int kernelidX = imgFilter.FindKernel("KernelXFilter");
+            int kernelidY = imgFilter.FindKernel("KernelYFilter");
+            int kernelidZ = imgFilter.FindKernel("KernelZSobelFilter");
+
+            imgFilter.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
+            // first round
+            imgFilter.SetInt("resultSobelInd", 0);
+            imgFilter.SetFloats("coefficients", 1 / 2.0f * -1, 0, 1 / 2.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
+            imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
+            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
+            imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
+            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
+            imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
+            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+
+            // second round
+            imgFilter.SetInt("resultSobelInd", 1);
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+            imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
+            imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
+            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 2.0f * -1, 0, 1 / 2.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
+            imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
+            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
+            imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
+            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            // third round
+            imgFilter.SetInt("resultSobelInd", 2);
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+            imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
+            imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
+            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
+            imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
+            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            imgFilter.SetFloats("coefficients", 1 / 2.0f * -1, 0, 1 / 2.0f * 1, 0.0f);
+
+            imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
+            imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
+            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+
+            Graphics.CopyTexture(sobelSpecial, texture3d);
+
+            return texture3d;
+        }
 
         #endregion
     }
