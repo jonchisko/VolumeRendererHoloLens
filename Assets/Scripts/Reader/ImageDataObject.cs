@@ -54,30 +54,23 @@ namespace com.jon_skoberne.Reader
         public ComputeShader imgCalculator;
         public ComputeShader imgFilter;
 
-        private float[] dataArray;
-        public ItkReadFileSupport.ReadType readType;
-        public ComputeShader csReading;
-        public Texture3D tex3D;
-        public Texture3D tex3Dgauss;
-        public Texture3D tex3Dgradient;
-        public Texture3D tex3DgradientGauss;
-        public Texture3D tex3DgradientSobel;
 
+        private ItkReadFileSupport.ReadType readType;
+        private Texture3D tex3D;
+        private Texture3D tex3Dgauss;
+        private Texture3D tex3Dgradient;
+        private Texture3D tex3DgradientGauss;
+        private Texture3D tex3DgradientSobel;
+
+        private float minValue, maxValue;
+        private int dimX, dimY, dimZ;
+        private string filePath;
+
+        private float[] dataArray;
         private RenderTexture rt1;
         private RenderTexture rt2;
         private RenderTexture rtNormData;
         private RenderTexture rtSobel;
-        
-        public float minValue, maxValue;
-        public int dimX, dimY, dimZ;
-        public string filePath;
-
-        /*public ImageDataObject(ItkReadFileSupport.ReadType readType, ComputeShader csReading, string filePath)
-        {
-            this.readType = readType;
-            this.csReading = csReading;
-            InitializeValues(filePath);
-        }*/
 
         public void CreateImageDataObject(ItkReadFileSupport.ReadType readType, string filePath)
         {
@@ -132,15 +125,6 @@ namespace com.jon_skoberne.Reader
                 case 2: return tex3DgradientSobel;
                 default: throw new SystemException("Gradient mode does not exist!");
             }
-        }
-
-        #endregion
-
-        #region Set methods
-        
-        public void SetComputeShader(ComputeShader cs)
-        {
-            this.csReading = cs;
         }
 
         #endregion
@@ -202,7 +186,7 @@ namespace com.jon_skoberne.Reader
             this.dataArray = imageFloatArray;
         }
 
-        public void SetMaxMinValues()
+        private void SetMaxMinValues()
         {
             this.minValue = int.MaxValue;
             this.maxValue = int.MinValue;
@@ -214,7 +198,7 @@ namespace com.jon_skoberne.Reader
             }
         }
 
-        public void SetTextures()
+        private void SetTextures()
         {
             this.tex3D = ComputeTexture3D();
             this.tex3Dgradient = ComputeTexture3DGradient();
@@ -226,7 +210,7 @@ namespace com.jon_skoberne.Reader
             //CreateAssetsFromTextures();
         }
 
-        public void CreateAssetsFromTextures()
+        private void CreateAssetsFromTextures()
         {
             CreateTextureAsset(this.tex3D, VolumeAssetNames.data3d);
             CreateTextureAsset(this.tex3Dgradient, VolumeAssetNames.data3dGradient);
@@ -282,14 +266,14 @@ namespace com.jon_skoberne.Reader
             //CreateAssetsFromTextures();
         }
 
-        public void SetDimensions(Image image)
+        private void SetDimensions(Image image)
         {
             this.dimX = (int)image.GetWidth();
             this.dimY = (int)image.GetHeight();
             this.dimZ = (int)image.GetDepth();
         }
 
-        public Texture3D ComputeTexture3D()
+        private Texture3D ComputeTexture3D()
         {
             Texture3D tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
             tex3D.wrapMode = TextureWrapMode.Clamp;
@@ -305,7 +289,7 @@ namespace com.jon_skoberne.Reader
             return tex3D;
         }
 
-        public Texture3D ComputeTexture3DGradient()
+        private Texture3D ComputeTexture3DGradient()
         {
             Texture3D tex3DGradient = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
             tex3DGradient.wrapMode = TextureWrapMode.Clamp;

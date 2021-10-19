@@ -52,7 +52,7 @@ namespace com.jon_skoberne.UI
 
         private void SetRandomTextureInShader()
         {
-            Texture3D randomValuesTex = CreateRandomTexture(this.ido.dimX, this.ido.dimY, this.ido.dimZ);
+            Texture3D randomValuesTex = CreateRandomTexture(this.ido.GetWidth(), this.ido.GetHeight(), this.ido.GetDepth());
             this.material.SetTexture("_RandomTex", randomValuesTex);
         }
 
