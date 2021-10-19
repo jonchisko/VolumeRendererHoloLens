@@ -1,23 +1,36 @@
 ﻿using com.jon_skoberne.Reader;
 using com.jon_skoberne.TransferFunctionDrawer;
-using System.Collections;
-using System.Collections.Generic;
+using com.jon_skoberne.UI;
 using UnityEngine;
 
 public class VolumeRenderManager : MonoBehaviour
 {
     public GameObject volumeCube;
+    public ShaderMenu shaderMenuInstance;
+    public HistogramDrawer histogramInstance;
     public ImageDataObject ido;
     public Material ctMaterial;
-    public Material tfMaterial;
+    //public Material tfMaterial;
 
     // Start is called before the first frame update
     void Start()
     {
-        TransferFunctionController.OnEventRedrawTexture += SetTexture;
+        InitVolumeCube();
+        InitHistogram();
+        RegisterEvents();
     }
 
     private void OnDestroy()
+    {
+        DeregisterEvents();
+    }
+
+    private void RegisterEvents()
+    {
+        TransferFunctionController.OnEventRedrawTexture += SetTexture;
+    }
+
+    private void DeregisterEvents()
     {
         TransferFunctionController.OnEventRedrawTexture -= SetTexture;
     }
@@ -26,4 +39,15 @@ public class VolumeRenderManager : MonoBehaviour
     {
         ctMaterial.SetTexture("_Transfer2D", tex);
     }
+
+    private void InitVolumeCube()
+    {
+        shaderMenuInstance.InitializeCubeState(this.ido);
+    }
+
+    private void InitHistogram()
+    {
+        histogramInstance.InitializeHistogramState(ido.GetTexture3D());
+    }
+
 }

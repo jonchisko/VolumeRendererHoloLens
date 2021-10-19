@@ -110,8 +110,8 @@ namespace com.jon_skoberne.Reader
         {
             switch(filterMode)
             {
-                case 0: return tex3D;
-                case 1: return tex3Dgauss;
+                case 0: return this.tex3D;
+                case 1: return this.tex3Dgauss;
                 default: throw new SystemException("Filter mode does not exist!");
             }
         }
@@ -120,9 +120,9 @@ namespace com.jon_skoberne.Reader
         {
             switch(mode)
             {
-                case 0: return tex3Dgradient;
-                case 1: return tex3DgradientGauss;
-                case 2: return tex3DgradientSobel;
+                case 0: return this.tex3Dgradient;
+                case 1: return this.tex3DgradientGauss;
+                case 2: return this.tex3DgradientSobel;
                 default: throw new SystemException("Gradient mode does not exist!");
             }
         }

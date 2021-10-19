@@ -85,11 +85,11 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _LightPower: 1.8154297
+    - _LightPower: 1
     - _MaxDensityVal: 1.1
     - _MaxVal: 1.1
     - _Metallic: 0
-    - _MinVal: 0.03164015
+    - _MinVal: 0.10739188
     - _Mode: 0
     - _NumSteps: 512
     - _OcclusionStrength: 1
@@ -97,7 +97,7 @@ Material:
     - _RayBounces: 50
     - _RayNumber: 50
     - _ScaleSuperSample: 0
-    - _Shininess: 3.0582886
+    - _Shininess: 1
     - _SigmaA: 0.3
     - _SigmaS: 0.7
     - _SigmaT: 50
@@ -114,7 +114,7 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
     - _LightDirection: {r: 1, g: 0, b: 1, a: 0}
-    - _LightPosition: {r: -3.0732417, g: -3.9118648, b: 3.3952641, a: 1}
+    - _LightPosition: {r: 2.0000005, g: 2.0000005, b: 2.0000005, a: 1}
     - _Plane: {r: 0, g: 1, b: 0, a: -0}
     - _PlaneBottom: {r: 0, g: -0.000000119209275, b: 1, a: 0.38400012}
     - _PlaneLeft: {r: -1, g: -0.00000023841852, b: 0, a: 0.8260004}

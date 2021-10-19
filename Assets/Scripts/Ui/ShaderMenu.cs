@@ -9,8 +9,6 @@ namespace com.jon_skoberne.UI
     public class ShaderMenu : MonoBehaviour
     {
 
-        public GameObject volumeCube;
-
         [Header("Light color sliders:")]
         public SliderLogic[] sliders_color;
         [Header("Light position sliders:")]
@@ -29,17 +27,16 @@ namespace com.jon_skoberne.UI
 
         private void Awake()
         {
-            InitCubeMaterial();
+            
         }
 
-        private void InitCubeMaterial()
+        public void InitializeCubeState(ImageDataObject ido)
         {
-            ido = Resources.Load<ImageDataObject>("VolumeData/" + VolumeAssetNames.imageObject);
-            Renderer mt = this.volumeCube.GetComponent<Renderer>();
-            mt.sharedMaterial = this.material;
-            SetRandomTextureInShader();
+            Debug.Log("Initing cube state.");
 
+            this.ido = ido;
             SetInitialKeywords();
+            SetRandomTextureInShader();
         }
 
         private void SetInitialKeywords()
