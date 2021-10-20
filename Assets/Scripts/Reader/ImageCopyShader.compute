@@ -1,25 +1,45 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSWriteTexture
+#pragma kernel TransferToFloats
+#pragma kernel TransferToTex
 
+RWTexture3D<float4> tex;
+RWBuffer<float> floatsBuffer;
 
-RWBuffer<float> input;
-RWTexture3D<float> outputTexture3D;
+uint3 dims;
+bool onlyRedChannel;
 
-uint _InputSize;
-vector _Dimensions;
-
-[numthreads(1024,1,1)]
-void CSWriteTexture (uint3 id : SV_DispatchThreadID)
+[numthreads(8,8,8)]
+void TransferToFloats (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _InputSize) 
-    {
-        uint x, y, z;
-        uint dimensions2DSize = (uint)_Dimensions[0] * (uint)_Dimensions[1];
-        z = id.x / dimensions2DSize;
-        uint offsetedPosition = id.x - z * dimensions2DSize;
-        y = offsetedPosition / (uint)_Dimensions[0];
-        x = offsetedPosition % (uint)_Dimensions[0];
-        uint3 writePos = uint3(x, y, z);
-        outputTexture3D[writePos] = input[id.x];
-    }
+	if (onlyRedChannel) {
+		uint linInd = id.x + id.y * dims.x + id.z * (dims.x * dims.y);
+		floatsBuffer[linInd] = tex[id.xyz].x;
+	}
+	else {
+		uint linInd = id.x * 4 + id.y * (4 * dims.x) + id.z * (dims.x * dims.y * 4);
+		float4 result = tex[id.xyz];
+		floatsBuffer[linInd] = result.x;
+		floatsBuffer[linInd + 1] = result.y;
+		floatsBuffer[linInd + 2] = result.z;
+		floatsBuffer[linInd + 3] = result.w;
+	}
 }
+
+[numthreads(8,8,8)]
+void TransferToTex(uint3 id : SV_DispatchThreadID)
+{
+	if (onlyRedChannel) {
+		uint linInd = id.x + id.y * dims.x + id.z * (dims.x * dims.y);
+		tex[id] = float4(floatsBuffer[linInd], 0.0f, 0.0f, 0.0f);
+	}
+	else {
+		uint linInd = id.x * 4 + id.y * (4 * dims.x) + id.z * (dims.x * dims.y * 4);
+		tex[id] = float4(floatsBuffer[linInd], floatsBuffer[linInd + 1], floatsBuffer[linInd + 2], floatsBuffer[linInd + 3]);
+	}
+}
+
+/*
+One kernel to transfer from float[] to rendertexture, which is then copied with graphics blit
+
+Another kernel to transfer from rendertexture to float[]. Use this one right after a tex is computed! Fresh out da oven.
+*/

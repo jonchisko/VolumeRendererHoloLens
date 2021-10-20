@@ -12,18 +12,37 @@ namespace com.jon_skoberne.Reader
     {
         public ItkReadFileSupport.ReadType readType;
         public float[] dataArray;
-        public Color32[] tex3D;
-        public Color32[] tex3Dgauss;
-        public Color32[] tex3Dgradient;
-        public Color32[] tex3DgradientGauss;
-        public Color32[] tex3DgradientSobel;
+        public float[] tex3D;
+        public float[] tex3Dgauss;
+        public float[] tex3Dgradient;
+        public float[] tex3DgradientGauss;
+        public float[] tex3DgradientSobel;
 
         public float minValue, maxValue;
         public int dimX, dimY, dimZ;
         public string filePath;
 
-        public SaveImageDataObject(ItkReadFileSupport.ReadType readType, float[] dataArray, Color32[] tex3D, Color32[] tex3Dgauss, Color32[] tex3Dgradient, Color32[] tex3DgradientGauss,
-            Color32[] tex3DgradientSobel, float minValue, float maxValue, int dimX, int dimY, int dimZ, string filePath)
+        public SaveImageDataObject(ItkReadFileSupport.ReadType readType, float[] dataArray, float minValue, float maxValue, int dimX, int dimY, int dimZ, string filePath)
+        {
+            this.readType = readType;
+            this.dataArray = dataArray;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.dimX = dimX;
+            this.dimY = dimY;
+            this.dimZ = dimZ;
+            this.filePath = filePath;
+
+            this.tex3D = new float[this.dimX * this.dimY * this.dimZ];
+            this.tex3Dgauss = new float[this.dimX * this.dimY * this.dimZ];
+
+            this.tex3Dgradient = new float[this.dimX * this.dimY * this.dimZ * 4];
+            this.tex3DgradientGauss = new float[this.dimX * this.dimY * this.dimZ * 4];
+            this.tex3DgradientSobel = new float[this.dimX * this.dimY * this.dimZ * 4];
+        }
+
+        public SaveImageDataObject(ItkReadFileSupport.ReadType readType, float[] dataArray, float[] tex3D, float[] tex3Dgauss, float[] tex3Dgradient, float[] tex3DgradientGauss,
+            float[] tex3DgradientSobel, float minValue, float maxValue, int dimX, int dimY, int dimZ, string filePath)
         {
             this.readType = readType;
             this.dataArray = dataArray;
@@ -53,14 +72,16 @@ namespace com.jon_skoberne.Reader
 
         public ComputeShader imgCalculator;
         public ComputeShader imgFilter;
+        public ComputeShader imgCopy;
 
+        private SaveImageDataObject serializableImageObject;
 
         private ItkReadFileSupport.ReadType readType;
-        private Texture3D tex3D;
-        private Texture3D tex3Dgauss;
-        private Texture3D tex3Dgradient;
-        private Texture3D tex3DgradientGauss;
-        private Texture3D tex3DgradientSobel;
+        public Texture3D tex3D;
+        public Texture3D tex3Dgauss;
+        public Texture3D tex3Dgradient;
+        public Texture3D tex3DgradientGauss;
+        public Texture3D tex3DgradientSobel;
 
         private float minValue, maxValue;
         private int dimX, dimY, dimZ;
@@ -145,6 +166,7 @@ namespace com.jon_skoberne.Reader
                 ConvertPointerToArray(image);
                 SetDimensions(image);
                 SetMaxMinValues();
+                this.serializableImageObject = new SaveImageDataObject(this.readType, this.dataArray, this.minValue, this.maxValue, this.dimX, this.dimY, this.dimZ, this.filePath);
                 //SetTextures();
                 //gpu
                 CreateRenderTextures();
@@ -253,16 +275,54 @@ namespace com.jon_skoberne.Reader
             this.rtNormData.Create();
         }
 
+        private void CreateTextures3D()
+        {
+            if(this.tex3D == null) // if one is null, all should be null
+            {
+                this.tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
+
+                this.tex3Dgauss = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
+
+                this.tex3Dgradient = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
+
+                this.tex3DgradientGauss = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
+
+                this.tex3DgradientSobel = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
+            }
+        }
+
         private void Compute3DtexGPU()
         {
             Debug.Log("Computing on gpu!");
             this.tex3D = GetNormalizedDataGpu();
+            CopyTexToFloats(this.rtNormData, this.serializableImageObject.tex3D, true);
+
             this.tex3Dgradient = GetCentralDiffGradientGpu();
+            CopyTexToFloats(this.rt2, this.serializableImageObject.tex3Dgradient, false);
 
             this.tex3DgradientGauss = GetGaussFilterGpu(this.rt2, this.rt1, this.rtSobel);
-            this.tex3Dgauss = GetGaussFilterGpu(this.rtNormData, this.rt2, this.rtSobel);
-            this.tex3DgradientSobel = GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel);
+            CopyTexToFloats(this.rt1, this.serializableImageObject.tex3DgradientGauss, false);
 
+            this.tex3Dgauss = GetGaussFilterGpu(this.rtNormData, this.rt2, this.rtSobel);
+            CopyTexToFloats(this.rt2, this.serializableImageObject.tex3Dgauss, true);
+
+            this.tex3DgradientSobel = GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel);
+            CopyTexToFloats(this.rtSobel, this.serializableImageObject.tex3DgradientSobel, false);
             //CreateAssetsFromTextures();
         }
 
@@ -314,20 +374,23 @@ namespace com.jon_skoberne.Reader
 
         public SaveImageDataObject GetSerializableImageObject()
         {
-            return new SaveImageDataObject(this.readType, this.dataArray, this.tex3D.GetPixels32(), this.tex3Dgauss.GetPixels32(),
-                this.tex3Dgradient.GetPixels32(), this.tex3DgradientGauss.GetPixels32(), this.tex3DgradientSobel.GetPixels32(),
-                this.minValue, this.maxValue, this.dimX, this.dimY, this.dimZ, this.filePath);
+            return this.serializableImageObject;
+        }
+
+        public void ResetSerializableImageObject()
+        {
+            this.serializableImageObject.tex3D = null;
+            this.serializableImageObject.tex3Dgauss = null;
+
+            this.serializableImageObject.tex3Dgradient = null;
+            this.serializableImageObject.tex3DgradientGauss = null;
+            this.serializableImageObject.tex3DgradientSobel = null;
         }
 
         public void DeserializeIntoImageDataObject(SaveImageDataObject saveObject)
         {
             this.readType = saveObject.readType;
             this.dataArray = saveObject.dataArray;
-            this.tex3D.SetPixels32(saveObject.tex3D);
-            this.tex3Dgauss.SetPixels32(saveObject.tex3Dgauss);
-            this.tex3Dgradient.SetPixels32(saveObject.tex3Dgradient);
-            this.tex3DgradientGauss.SetPixels32(saveObject.tex3DgradientGauss);
-            this.tex3DgradientSobel.SetPixels32(saveObject.tex3DgradientSobel);
             this.minValue = saveObject.minValue;
             this.maxValue = saveObject.maxValue;
             this.dimX = saveObject.dimX;
@@ -335,7 +398,60 @@ namespace com.jon_skoberne.Reader
             this.dimZ = saveObject.dimZ;
             this.filePath = saveObject.filePath;
 
-            CreateAssetsFromTextures();
+            Debug.Log("Deserialized save into ido: " + "X: " + this.dimX + ", Y: " + this.dimY + ", Z: " + this.dimZ);
+
+            CreateRenderTextures();
+            CreateTextures3D();
+
+            CopyFloatsToTex(saveObject.tex3D, this.tex3D, true);
+            CopyFloatsToTex(saveObject.tex3Dgauss, this.tex3Dgauss, true);
+            CopyFloatsToTex(saveObject.tex3Dgradient, this.tex3Dgradient, false);
+            CopyFloatsToTex(saveObject.tex3DgradientGauss, this.tex3DgradientGauss, false);
+            CopyFloatsToTex(saveObject.tex3DgradientSobel, this.tex3DgradientSobel, false);
+
+            //CreateAssetsFromTextures();
+        }
+
+        private void CopyFloatsToTex(float[] data, Texture3D tex, bool isOnlyRedChannel)
+        {
+            // copy data to render tex with compute shader
+            ComputeBuffer floatsBuffer = new ComputeBuffer(data.Length, 1 * sizeof(float));
+            floatsBuffer.SetData(data);
+
+            int kernelid = imgCopy.FindKernel("TransferToTex");
+
+            imgCopy.SetBuffer(kernelid, "floatsBuffer", floatsBuffer);
+            imgCopy.SetInts("dims", this.dimX, this.dimY, this.dimZ);
+            imgCopy.SetBool("onlyRedChannel", isOnlyRedChannel);
+            imgCopy.SetTexture(kernelid, "tex", this.rt1);
+
+            imgCopy.Dispatch(kernelid, this.rt1.width / 8, this.rt1.height / 8, this.rt1.volumeDepth / 8);
+
+            floatsBuffer.Release();
+            floatsBuffer = null;
+
+            // copy render tex to tex3d with graphics blit
+            Graphics.CopyTexture(this.rt1, tex);
+        }
+
+        private void CopyTexToFloats(RenderTexture tex, float[] data, bool isOnlyRedChannel)
+        {
+            ComputeBuffer floatsBuffer = new ComputeBuffer(data.Length, 1 * sizeof(float));
+            floatsBuffer.SetData(data);
+
+            int kernelid = imgCopy.FindKernel("TransferToFloats");
+
+            imgCopy.SetBuffer(kernelid, "floatsBuffer", floatsBuffer);
+            imgCopy.SetInts("dims", this.dimX, this.dimY, this.dimZ);
+            imgCopy.SetBool("onlyRedChannel", isOnlyRedChannel);
+            imgCopy.SetTexture(kernelid, "tex", tex);
+
+            imgCopy.Dispatch(kernelid, tex.width / 8, tex.height / 8, tex.volumeDepth / 8);
+
+            floatsBuffer.GetData(data);
+
+            floatsBuffer.Release();
+            floatsBuffer = null;
         }
 
         private void CreateTextureAsset(Texture3D tex, string assetName)

@@ -95,6 +95,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             rt.Create();
 
             this.transferFunctionTex = new Texture2D(this.textureDimensions, this.textureDimensions, TextureFormat.RGBAFloat, false);
+            this.transferFunctionTex.wrapMode = TextureWrapMode.Clamp;
+
             this.tfPointsColors = new LinkedList<TransferFunctionPoint>();
             this.tfPointsOpacities = new LinkedList<TransferFunctionPoint>();
 

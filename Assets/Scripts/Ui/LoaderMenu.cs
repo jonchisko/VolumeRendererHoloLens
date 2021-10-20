@@ -16,11 +16,13 @@ namespace com.jon_skoberne.UI
         public MainMenuPopup popup;
         public ImageDataObject ido;
 
-        private List<string> loadOptions = new List<string>();
+        //private List<string> loadOptions = new List<string>();
         private const string FileConversionFailure = "Something went wrong when converting file to texture!";
         private const string FilePathFailure = "Something is wrong with file path!";
         private const string FileConversionSuccess = "File conversion was successful!";
         private const string LoadingMsg = "In progress ...";
+
+        private const string noneOption = "None";
 
         // Start is called before the first frame update
         void Start()
@@ -28,14 +30,22 @@ namespace com.jon_skoberne.UI
             PopulateDropdownDinamically();
 
 
-            ImageDataObject.OnReadingError += OnReadingErrorInConversion;
-            ImageDataObject.OnReadingSuccess += OnReadingSuccessInConversion;
+            RegisterEvents();
         }
 
         private void OnDestroy()
         {
-            ImageDataObject.OnReadingError -= OnReadingErrorInConversion;
-            ImageDataObject.OnReadingSuccess -= OnReadingSuccessInConversion;
+            DeregisterEvents();
+        }
+
+        public bool IsImageLoaded()
+        {
+            return ido.GetTexture3D() != null;
+        }
+
+        public void ShowNotLoadedPopup()
+        {
+            popup.OpenPopup("Image not loaded!", "Load image to continue.");
         }
 
         public void LoadData()
@@ -50,11 +60,31 @@ namespace com.jon_skoberne.UI
         {
             if(selectedInd >= 0)
             {
-                string path = this.loadOptions[selectedInd];
-                SaveImageDataObject imageObject = LoadImageObject(path);
-                ido.DeserializeIntoImageDataObject(imageObject);
+                Debug.Log("Selected index: " + selectedInd);
+                string element = this.dropDown.options[selectedInd].text;
+                if(element != noneOption)
+                {
+                    //string path = this.loadOptions[selectedInd];
+                    string path = Application.persistentDataPath + "\\" + element;
+                    SaveImageDataObject imageObject = LoadImageObject(path);
+                    ido.DeserializeIntoImageDataObject(imageObject);
+                }
             }
 
+        }
+
+        private void RegisterEvents()
+        {
+            ImageDataObject.OnReadingError += OnReadingErrorInConversion;
+            ImageDataObject.OnReadingSuccess += OnReadingSuccessInConversion;
+            dropDown.onValueChanged.AddListener(OnSelectedItemDropdown);
+        }
+
+        private void DeregisterEvents()
+        {
+            ImageDataObject.OnReadingError -= OnReadingErrorInConversion;
+            ImageDataObject.OnReadingSuccess -= OnReadingSuccessInConversion;
+            dropDown.onValueChanged.RemoveListener(OnSelectedItemDropdown);
         }
 
         private void OnReadingErrorInConversion(ImageDataObject ido)
@@ -65,7 +95,6 @@ namespace com.jon_skoberne.UI
         private void OnReadingSuccessInConversion(ImageDataObject ido)
         {
             popup.OpenPopup("SUCCESS", FileConversionSuccess + "\nObject:\n" + ido.GetFilePath());
-            PopulateDropdownDinamically();
         }
 
         private void ConvertSelectedFileToImageDataObject()
@@ -82,6 +111,7 @@ namespace com.jon_skoberne.UI
                     ItkReadFileSupport.ReadType readType = ItkReadFileSupport.GetReadTypeFromString(fileType);
                     ido.CreateImageDataObject(readType, imagePath);
                     SaveImageDataObject();
+                    PopulateDropdownDinamically();
                 }
                 catch (Exception ex)
                 {
@@ -98,16 +128,22 @@ namespace com.jon_skoberne.UI
 
         private void PopulateDropdownDinamically()
         {
+            Debug.Log("Populating dropdown.");
             dropDown.ClearOptions();
-            loadOptions.Clear();
+            //loadOptions.Clear();
+            List<string> loadOptions = new List<string>();
 
             loadOptions = GetDataFiles();
-
+            loadOptions.Add(noneOption);
+            dropDown.options.Add(new TMP_Dropdown.OptionData() { text = noneOption });
             foreach (var element in loadOptions)
             {
-                dropDown.options.Add(new TMP_Dropdown.OptionData() { text = Path.GetFileName(element) });
+                if(element != noneOption)
+                {
+                    dropDown.options.Add(new TMP_Dropdown.OptionData() { text = Path.GetFileName(element) });
+                }
             }
-            dropDown.value = -1;
+            dropDown.value = 0;
             dropDown.Select();
             dropDown.RefreshShownValue();
         }
@@ -117,6 +153,7 @@ namespace com.jon_skoberne.UI
             List<string> files = new List<string>();
             if (Directory.Exists(Application.persistentDataPath))
             {
+                Debug.Log("Get data files. Path: " + Application.persistentDataPath);
                 string worldsFolder = Application.persistentDataPath;
 
                 DirectoryInfo d = new DirectoryInfo(worldsFolder);
@@ -135,6 +172,7 @@ namespace com.jon_skoberne.UI
 
         private static SaveImageDataObject LoadImageObject(string path)
         {
+            Debug.Log("Loading image: " + path);
             SaveImageDataObject imageObject = null;
             if (File.Exists(path))
             {
@@ -156,46 +194,12 @@ namespace com.jon_skoberne.UI
             Debug.Log("Saving Converted Image Data Object");
             SaveImageDataObject saveObject = ido.GetSerializableImageObject();
             BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath + "\\" + Path.GetFileNameWithoutExtension(saveObject.filePath));
+            FileStream file = File.Create(Application.persistentDataPath + "\\" + Path.GetFileNameWithoutExtension(saveObject.filePath) + VolumeAssetNames.savedImageObject);
             bf.Serialize(file, saveObject);
             file.Close();
+
+            ido.ResetSerializableImageObject(); // "releases mem" for GC
         }
-
-        private void CreateImageDataInstance()
-        {
-            // create image data instance
-            // create asssets in folder so that they can be "serialized" into image
-        }
-
-        private void CreateAssets(ImageDataObject ido)
-        {
-
-        }
-
-        private void SerializeImageDataObject(ImageDataObject ido)
-        {
-
-        }
-
-        /*private ImageDataObject DeserializeImageDataObject(string path)
-        {
-
-        }
-
-        
-         *             string[] guids = AssetDatabase.FindAssets("_scriptableObject", new string[] { VolumeAssetNames.SaveFolderPath });
-            List<string> assetPaths = new List<string>();
-            foreach (string guid in guids)
-            {
-                assetPaths.Add(AssetDatabase.GUIDToAssetPath(guid));
-            }
-
-            foreach (var element in assetPaths)
-            {
-                dropDown.options.Add(new TMP_Dropdown.OptionData() { text = Path.GetFileName(element) });
-                dropDownImageDataObjectsAssetPaths.Add(SaveFolderPath.Split('/')[2] + "/" + Path.GetFileNameWithoutExtension(element));
-            }
-        */
     }
 }
 

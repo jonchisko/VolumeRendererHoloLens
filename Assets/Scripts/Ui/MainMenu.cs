@@ -8,6 +8,7 @@ namespace com.jon_skoberne.UI
 
     public class MainMenu : MonoBehaviour
     {
+        public LoaderMenu loader;
 
         [SerializeField]
         private MenuItemAnimation loaderScreen = null;
@@ -38,7 +39,13 @@ namespace com.jon_skoberne.UI
 
         public void ShowConnectionScreen()
         {
-            loaderScreen.DisableMenu();
+            if (loader.IsImageLoaded())
+            {
+                loaderScreen.DisableMenu();
+            } else
+            {
+                loader.ShowNotLoadedPopup();
+            }
         }
 
         public void LoadVolumeScene()

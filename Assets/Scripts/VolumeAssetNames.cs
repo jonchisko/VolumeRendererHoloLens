@@ -9,7 +9,7 @@ public class VolumeAssetNames
     public static string imageObjectTypeName = "ImageDataObject";
     public static string imageObject = "LoadedImageObject";
 
-    public static string savedImageObject = "_saved_image_object";
+    public static string savedImageObject = "_image";
 
     public static string data3d = "data3d";
     public static string data3dGauss = "data3dGauss";
