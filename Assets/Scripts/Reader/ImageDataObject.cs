@@ -77,11 +77,11 @@ namespace com.jon_skoberne.Reader
         private SaveImageDataObject serializableImageObject;
 
         private ItkReadFileSupport.ReadType readType;
-        public Texture3D tex3D;
-        public Texture3D tex3Dgauss;
-        public Texture3D tex3Dgradient;
-        public Texture3D tex3DgradientGauss;
-        public Texture3D tex3DgradientSobel;
+        private Texture3D tex3D;
+        private Texture3D tex3Dgauss;
+        private Texture3D tex3Dgradient;
+        private Texture3D tex3DgradientGauss;
+        private Texture3D tex3DgradientSobel;
 
         private float minValue, maxValue;
         private int dimX, dimY, dimZ;
