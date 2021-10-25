@@ -569,7 +569,7 @@ namespace com.jon_skoberne.Reader
             imgFilter.SetTexture(kernelidZ, "OutputImage", firstTex);
             imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
 
-            Graphics.CopyTexture(secondTex, texture3d);
+            Graphics.CopyTexture(firstTex, texture3d);
 
             return texture3d;
         }
