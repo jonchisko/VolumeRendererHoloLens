@@ -415,6 +415,8 @@ namespace com.jon_skoberne.Reader
 
             //CreateAssetsFromTextures();
             ReleaseTempRenderTextures();
+
+            OnReadingSuccess?.Invoke(this);
         }
 
         private void CopyFloatsToTex(float[] data, Texture3D tex, bool isOnlyRedChannel)
