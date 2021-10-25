@@ -99,10 +99,12 @@ bool IsColAboveLine(BorderPoints bp, int currentX, int currentY)
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 
-    float4 color = Result[id.xy];
+    BorderPoints bp = GetColBorderPoints(id.x);
+    float4 colorOfX = GetColInterpolatedColor(bp, id.x);
+    if (!IsColAboveLine(bp, id.x, id.y)) colorOfX = float4(0, 0, 0, 0);
+    Result[id.xy] = colorOfX;
 
-
-    if (_OpMode) {
+    /*if (_OpMode) {
         BorderPoints bp = GetColBorderPoints(id.x);
         float4 colorOfX = GetColInterpolatedColor(bp, id.x);
         if (!IsColAboveLine(bp, id.x, id.y)) colorOfX = float4(0, 0, 0, 0);
@@ -115,7 +117,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         color.xyz = colorOfX.xyz;
     }
 
-    Result[id.xy] = color;
+    Result[id.xy] = color;*/
 }
 
 

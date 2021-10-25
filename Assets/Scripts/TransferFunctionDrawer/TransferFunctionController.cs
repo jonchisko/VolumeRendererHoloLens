@@ -116,12 +116,18 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         void Start()
         {
             RegisterToEvents();
-            ComputeTexture();
+            OnEnableDrawer();
         }
 
         private void OnDestroy()
         {
+            rt.Release();
             DeregisterFromEvenets();
+        }
+
+        private void OnEnable()
+        {
+            OnEnableDrawer();
         }
 
         #endregion
@@ -133,6 +139,14 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public Texture2D GetTransferTexture()
         {
             return this.transferFunctionTex;
+        }
+
+        private void OnEnableDrawer()
+        {
+            // this needs to be done, otherwise the last awake just sets its own transferFunctionTex and it stays so
+            this.textureMaterialColors.SetTexture("_MainTex", this.transferFunctionTex);
+            this.textureMaterialOpacities.SetTexture("_MainTex", this.transferFunctionTex); // _TransferTexture
+            ComputeTexture();
         }
 
         private void ComputeTexture()
@@ -226,15 +240,15 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         ComputeBuffer positionsColorsBuffer = new ComputeBuffer(pointColorsPositions.Length, 2 * sizeof(float));
                         ComputeBuffer colorsColorsBuffer = new ComputeBuffer(pointColorsColors.Length, 4 * sizeof(float));
 
-                        ComputeBuffer positionsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesPositions.Length, 2 * sizeof(float));
-                        ComputeBuffer colorsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesColors.Length, 4 * sizeof(float));
+                        //ComputeBuffer positionsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesPositions.Length, 2 * sizeof(float));
+                        //ComputeBuffer colorsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesColors.Length, 4 * sizeof(float));
 
 
                         positionsColorsBuffer.SetData(pointColorsPositions);
                         colorsColorsBuffer.SetData(pointColorsColors);
 
-                        positionsOpacitiesBuffer.SetData(pointOpacitiesPositions);
-                        colorsOpacitiesBuffer.SetData(pointOpacitiesColors);
+                        //positionsOpacitiesBuffer.SetData(pointOpacitiesPositions);
+                        //colorsOpacitiesBuffer.SetData(pointOpacitiesColors);
 
                         csTf2d.SetBuffer(0, "_PointColorsPositions", positionsColorsBuffer);
                         csTf2d.SetBuffer(0, "_PointColorsColors", colorsColorsBuffer);
@@ -247,13 +261,13 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         csTf2d.Dispatch(0, rt.width / 16, rt.height / 16, 1);
 
 
-                        csTf2d.SetBuffer(0, "_PointColorsPositions", positionsOpacitiesBuffer);
-                        csTf2d.SetBuffer(0, "_PointColorsColors", colorsOpacitiesBuffer);
+                        //csTf2d.SetBuffer(0, "_PointColorsPositions", positionsOpacitiesBuffer);
+                        //csTf2d.SetBuffer(0, "_PointColorsColors", colorsOpacitiesBuffer);
 
-                        csTf2d.SetBool("_OpMode", true);
-                        csTf2d.SetInt("_NumColPoints", pointOpacitiesPositions.Length);
-                        csTf2d.SetTexture(0, "Result", rt);
-                        csTf2d.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+                        //csTf2d.SetBool("_OpMode", true);
+                        //csTf2d.SetInt("_NumColPoints", pointOpacitiesPositions.Length);
+                        //csTf2d.SetTexture(0, "Result", rt);
+                        //csTf2d.Dispatch(0, rt.width / 16, rt.height / 16, 1);
 
                         Graphics.CopyTexture(rt, transferFunctionTex);
 
@@ -262,10 +276,10 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         colorsColorsBuffer.Release();
                         colorsColorsBuffer = null;
 
-                        positionsOpacitiesBuffer.Release();
-                        positionsOpacitiesBuffer = null;
-                        colorsOpacitiesBuffer.Release();
-                        colorsOpacitiesBuffer = null;
+                        //positionsOpacitiesBuffer.Release();
+                        //positionsOpacitiesBuffer = null;
+                        //colorsOpacitiesBuffer.Release();
+                        //colorsOpacitiesBuffer = null;
                         break;
                     }
                 case TransferFunctionMode.Ellipse:
