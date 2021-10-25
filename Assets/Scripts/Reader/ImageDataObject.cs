@@ -68,6 +68,7 @@ namespace com.jon_skoberne.Reader
         public delegate void ReadingEvent(ImageDataObject ido);
         public static event ReadingEvent OnReadingError;
         public static event ReadingEvent OnReadingSuccess;
+        public static event ReadingEvent OnLoadingSuccess;
 
 
         public ComputeShader imgCalculator;
@@ -416,7 +417,7 @@ namespace com.jon_skoberne.Reader
             //CreateAssetsFromTextures();
             ReleaseTempRenderTextures();
 
-            OnReadingSuccess?.Invoke(this);
+            OnLoadingSuccess?.Invoke(this);
         }
 
         private void CopyFloatsToTex(float[] data, Texture3D tex, bool isOnlyRedChannel)

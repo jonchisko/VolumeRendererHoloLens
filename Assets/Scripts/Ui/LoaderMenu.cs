@@ -20,6 +20,7 @@ namespace com.jon_skoberne.UI
         private const string FileConversionFailure = "Something went wrong when converting file to texture!";
         private const string FilePathFailure = "Something is wrong with file path!";
         private const string FileConversionSuccess = "File conversion was successful!";
+        private const string FileLoadSuccess = "File loading was successful!";
         private const string LoadingMsg = "In progress ...";
 
         private const string noneOption = "None";
@@ -77,6 +78,7 @@ namespace com.jon_skoberne.UI
         {
             ImageDataObject.OnReadingError += OnReadingErrorInConversion;
             ImageDataObject.OnReadingSuccess += OnReadingSuccessInConversion;
+            ImageDataObject.OnLoadingSuccess += OnLoadingSuccessInConversion;
             dropDown.onValueChanged.AddListener(OnSelectedItemDropdown);
         }
 
@@ -84,6 +86,7 @@ namespace com.jon_skoberne.UI
         {
             ImageDataObject.OnReadingError -= OnReadingErrorInConversion;
             ImageDataObject.OnReadingSuccess -= OnReadingSuccessInConversion;
+            ImageDataObject.OnLoadingSuccess -= OnLoadingSuccessInConversion;
             dropDown.onValueChanged.RemoveListener(OnSelectedItemDropdown);
         }
 
@@ -95,6 +98,11 @@ namespace com.jon_skoberne.UI
         private void OnReadingSuccessInConversion(ImageDataObject ido)
         {
             popup.OpenPopup("SUCCESS", FileConversionSuccess + "\nObject:\n" + ido.GetFilePath());
+        }
+
+        private void OnLoadingSuccessInConversion(ImageDataObject ido)
+        {
+            popup.OpenPopup("SUCCESS", FileLoadSuccess + "\nObject:\n" + ido.GetFilePath());
         }
 
         private void ConvertSelectedFileToImageDataObject()
