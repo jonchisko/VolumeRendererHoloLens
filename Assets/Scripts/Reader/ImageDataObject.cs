@@ -241,14 +241,17 @@ namespace com.jon_skoberne.Reader
             CreateTextureAsset(this.tex3DgradientSobel, VolumeAssetNames.data3dGradientSobel);
         }
 
-        private void CreateRenderTextures()
+        private void ReleaseTempRenderTextures()
         {
-            /*this.rt1.Release();
+            Debug.Log("Releasing render textures!");
+            this.rt1.Release();
             this.rt2.Release();
             this.rtSobel.Release();
-            this.rtNormData.Release();*/
+            this.rtNormData.Release();
+        }
 
-
+        private void CreateRenderTextures()
+        {
             Debug.Log("Creating render textures!");
             this.rt1 = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
             this.rt1.volumeDepth = this.dimZ;
@@ -324,6 +327,7 @@ namespace com.jon_skoberne.Reader
             this.tex3DgradientSobel = GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel);
             CopyTexToFloats(this.rtSobel, this.serializableImageObject.tex3DgradientSobel, false);
             //CreateAssetsFromTextures();
+            ReleaseTempRenderTextures();
         }
 
         private void SetDimensions(Image image)
@@ -410,6 +414,7 @@ namespace com.jon_skoberne.Reader
             CopyFloatsToTex(saveObject.tex3DgradientSobel, this.tex3DgradientSobel, false);
 
             //CreateAssetsFromTextures();
+            ReleaseTempRenderTextures();
         }
 
         private void CopyFloatsToTex(float[] data, Texture3D tex, bool isOnlyRedChannel)
