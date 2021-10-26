@@ -261,30 +261,35 @@ namespace com.jon_skoberne.Reader
             this.rt1.volumeDepth = this.dimZ;
             this.rt1.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rt1.enableRandomWrite = true;
+            this.rt1.wrapMode = TextureWrapMode.Clamp;
             this.rt1.Create();
 
             this.rt2 = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
             this.rt2.volumeDepth = this.dimZ;
             this.rt2.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rt2.enableRandomWrite = true;
+            this.rt2.wrapMode = TextureWrapMode.Clamp;
             this.rt2.Create();
 
             this.rtSobel = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
             this.rtSobel.volumeDepth = this.dimZ;
             this.rtSobel.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rtSobel.enableRandomWrite = true;
+            this.rtSobel.wrapMode = TextureWrapMode.Clamp;
             this.rtSobel.Create();
 
             this.rtNormData = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.RFloat);
             this.rtNormData.volumeDepth = this.dimZ;
             this.rtNormData.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rtNormData.enableRandomWrite = true;
+            this.rtNormData.wrapMode = TextureWrapMode.Clamp;
             this.rtNormData.Create();
 
             this.rtNormTmp = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.RFloat);
             this.rtNormTmp.volumeDepth = this.dimZ;
             this.rtNormTmp.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rtNormTmp.enableRandomWrite = true;
+            this.rtNormTmp.wrapMode = TextureWrapMode.Clamp;
             this.rtNormTmp.Create();
         }
 
@@ -336,6 +341,7 @@ namespace com.jon_skoberne.Reader
 
             GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel, this.tex3DgradientSobel);
             CopyTexToFloats(this.rtSobel, this.serializableImageObject.tex3DgradientSobel, false);
+
             //CreateAssetsFromTextures();
             ReleaseTempRenderTextures();
         }

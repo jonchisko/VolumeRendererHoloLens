@@ -15,7 +15,7 @@ uint3 imgDims;
 
 
 
-float4 GetGradient(uint3 id)
+float4 GetGradient(int3 id)
 {
     float currentValue = InputImage[id.xyz].x;
     float datax1 = InputImage[uint3(max(id.x - 1, 0), id.y, id.z)].x;
@@ -46,6 +46,7 @@ void Normalize(uint3 id: SV_DispatchThreadID)
 void CalcGradient(uint3 id: SV_DispatchThreadID)
 {
     if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        int3 signedId = int3(id.x, id.y, id.z);
         OutputImage[id.xyz] = GetGradient(id);
     }
 }

@@ -27,8 +27,9 @@ float4 ComputeConv(float4 coefficients, float4 pixel1, float4 pixel2, float4 pix
 void KernelXFilter(uint3 id: SV_DispatchThreadID) 
 {
     if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
-        uint3 elementfirst = uint3(max(id.x - 1, 0), id.y, id.z);
-        uint3 elementlast = uint3(min(id.x + 1, imgDims.x - 1), id.y, id.z);
+        int3 signedId = int3(id.x, id.y, id.z);
+        uint3 elementfirst = uint3(max(signedId.x - 1, 0), signedId.y, signedId.z);
+        uint3 elementlast = uint3(min(signedId.x + 1, imgDims.x - 1), signedId.y, signedId.z);
 
         float4 firstPixel = InputImage[elementfirst];
         float4 middlePixel = InputImage[id.xyz];
@@ -45,8 +46,9 @@ void KernelXFilter(uint3 id: SV_DispatchThreadID)
 void KernelYFilter(uint3 id: SV_DispatchThreadID)
 {
     if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
-        uint3 elementfirst = uint3(id.x, max(id.y - 1, 0), id.z);
-        uint3 elementlast = uint3(id.x, min(id.y + 1, imgDims.y - 1), id.z);
+        int3 signedId = int3(id.x, id.y, id.z);
+        uint3 elementfirst = uint3(signedId.x, max(signedId.y - 1, 0), signedId.z);
+        uint3 elementlast = uint3(signedId.x, min(signedId.y + 1, imgDims.y - 1), signedId.z);
 
         float4 firstPixel = InputImage[elementfirst];
         float4 middlePixel = InputImage[id.xyz];
@@ -61,8 +63,9 @@ void KernelYFilter(uint3 id: SV_DispatchThreadID)
 void KernelZFilter(uint3 id: SV_DispatchThreadID)
 {
     if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
-        uint3 elementfirst = uint3(id.x, id.y, max(id.z - 1, 0));
-        uint3 elementlast = uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1));
+        int3 signedId = int3(id.x, id.y, id.z);
+        uint3 elementfirst = uint3(signedId.x, signedId.y, max(signedId.z - 1, 0));
+        uint3 elementlast = uint3(signedId.x, signedId.y, min(signedId.z + 1, imgDims.z - 1));
 
         float4 firstPixel = InputImage[elementfirst];
         float4 middlePixel = InputImage[id.xyz];
@@ -77,8 +80,9 @@ void KernelZFilter(uint3 id: SV_DispatchThreadID)
 void KernelZSobelFilter(uint3 id: SV_DispatchThreadID)
 {
     if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
-        uint3 elementfirst = uint3(id.x, id.y, max(id.z - 1, 0));
-        uint3 elementlast = uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1));
+        int3 signedId = int3(id.x, id.y, id.z);
+        uint3 elementfirst = uint3(signedId.x, signedId.y, max(signedId.z - 1, 0));
+        uint3 elementlast = uint3(signedId.x, signedId.y, min(signedId.z + 1, imgDims.z - 1));
 
         float4 firstPixel = InputImage[elementfirst];
         float4 middlePixel = InputImage[id.xyz];
