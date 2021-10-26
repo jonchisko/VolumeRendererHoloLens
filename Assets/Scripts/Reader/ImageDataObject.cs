@@ -78,11 +78,11 @@ namespace com.jon_skoberne.Reader
         private SaveImageDataObject serializableImageObject;
 
         private ItkReadFileSupport.ReadType readType;
-        private Texture3D tex3D;
-        private Texture3D tex3Dgauss;
-        private Texture3D tex3Dgradient;
-        private Texture3D tex3DgradientGauss;
-        private Texture3D tex3DgradientSobel;
+        public Texture3D tex3D;
+        public Texture3D tex3Dgauss;
+        public Texture3D tex3Dgradient;
+        public Texture3D tex3DgradientGauss;
+        public Texture3D tex3DgradientSobel;
 
         private float minValue, maxValue;
         private int dimX, dimY, dimZ;
@@ -92,6 +92,7 @@ namespace com.jon_skoberne.Reader
         private RenderTexture rt1;
         private RenderTexture rt2;
         private RenderTexture rtNormData;
+        private RenderTexture rtNormTmp;
         private RenderTexture rtSobel;
 
         public void CreateImageDataObject(ItkReadFileSupport.ReadType readType, string filePath)
@@ -171,6 +172,7 @@ namespace com.jon_skoberne.Reader
                 //SetTextures();
                 //gpu
                 CreateRenderTextures();
+                CreateTextures3D();
                 Compute3DtexGPU();
                 //
                 OnReadingSuccess?.Invoke(this);
@@ -249,6 +251,7 @@ namespace com.jon_skoberne.Reader
             this.rt2.Release();
             this.rtSobel.Release();
             this.rtNormData.Release();
+            this.rtNormTmp.Release();
         }
 
         private void CreateRenderTextures()
@@ -272,23 +275,29 @@ namespace com.jon_skoberne.Reader
             this.rtSobel.enableRandomWrite = true;
             this.rtSobel.Create();
 
-            this.rtNormData = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.ARGBFloat);
+            this.rtNormData = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.RFloat);
             this.rtNormData.volumeDepth = this.dimZ;
             this.rtNormData.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.rtNormData.enableRandomWrite = true;
             this.rtNormData.Create();
+
+            this.rtNormTmp = new RenderTexture(this.dimX, this.dimY, 0, RenderTextureFormat.RFloat);
+            this.rtNormTmp.volumeDepth = this.dimZ;
+            this.rtNormTmp.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            this.rtNormTmp.enableRandomWrite = true;
+            this.rtNormTmp.Create();
         }
 
         private void CreateTextures3D()
         {
             if(this.tex3D == null) // if one is null, all should be null
             {
-                this.tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                this.tex3D = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RFloat, false)
                 {
                     wrapMode = TextureWrapMode.Clamp
                 };
 
-                this.tex3Dgauss = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false)
+                this.tex3Dgauss = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RFloat, false)
                 {
                     wrapMode = TextureWrapMode.Clamp
                 };
@@ -313,19 +322,19 @@ namespace com.jon_skoberne.Reader
         private void Compute3DtexGPU()
         {
             Debug.Log("Computing on gpu!");
-            this.tex3D = GetNormalizedDataGpu();
+            GetNormalizedDataGpu(this.tex3D);
             CopyTexToFloats(this.rtNormData, this.serializableImageObject.tex3D, true);
 
-            this.tex3Dgradient = GetCentralDiffGradientGpu();
+            GetCentralDiffGradientGpu(this.tex3Dgradient);
             CopyTexToFloats(this.rt2, this.serializableImageObject.tex3Dgradient, false);
 
-            this.tex3DgradientGauss = GetGaussFilterGpu(this.rt2, this.rt1, this.rtSobel);
-            CopyTexToFloats(this.rt1, this.serializableImageObject.tex3DgradientGauss, false);
+            GetGaussFilterGpu(this.rt2, this.rtSobel, this.rt1, this.tex3DgradientGauss);
+            CopyTexToFloats(this.rtSobel, this.serializableImageObject.tex3DgradientGauss, false);
 
-            this.tex3Dgauss = GetGaussFilterGpu(this.rtNormData, this.rt2, this.rtSobel);
-            CopyTexToFloats(this.rt2, this.serializableImageObject.tex3Dgauss, true);
+            GetGaussFilterGpu(this.rtNormData, this.rtNormTmp, this.rt2, this.tex3Dgauss);
+            CopyTexToFloats(this.rtNormTmp, this.serializableImageObject.tex3Dgauss, true);
 
-            this.tex3DgradientSobel = GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel);
+            GetSobelFilterGpu(this.rt1, this.rt2, this.rtSobel, this.tex3DgradientSobel);
             CopyTexToFloats(this.rtSobel, this.serializableImageObject.tex3DgradientSobel, false);
             //CreateAssetsFromTextures();
             ReleaseTempRenderTextures();
@@ -408,11 +417,11 @@ namespace com.jon_skoberne.Reader
             CreateRenderTextures();
             CreateTextures3D();
 
-            CopyFloatsToTex(saveObject.tex3D, this.tex3D, true);
-            CopyFloatsToTex(saveObject.tex3Dgauss, this.tex3Dgauss, true);
-            CopyFloatsToTex(saveObject.tex3Dgradient, this.tex3Dgradient, false);
-            CopyFloatsToTex(saveObject.tex3DgradientGauss, this.tex3DgradientGauss, false);
-            CopyFloatsToTex(saveObject.tex3DgradientSobel, this.tex3DgradientSobel, false);
+            CopyFloatsToTex(saveObject.tex3D, this.rtNormTmp, this.tex3D, true);
+            CopyFloatsToTex(saveObject.tex3Dgauss, this.rtNormTmp, this.tex3Dgauss, true);
+            CopyFloatsToTex(saveObject.tex3Dgradient, this.rt1, this.tex3Dgradient, false);
+            CopyFloatsToTex(saveObject.tex3DgradientGauss, this.rt1, this.tex3DgradientGauss, false);
+            CopyFloatsToTex(saveObject.tex3DgradientSobel, this.rt1, this.tex3DgradientSobel, false);
 
             //CreateAssetsFromTextures();
             ReleaseTempRenderTextures();
@@ -420,7 +429,7 @@ namespace com.jon_skoberne.Reader
             OnLoadingSuccess?.Invoke(this);
         }
 
-        private void CopyFloatsToTex(float[] data, Texture3D tex, bool isOnlyRedChannel)
+        private void CopyFloatsToTex(float[] data, RenderTexture destTex, Texture3D tex, bool isOnlyRedChannel)
         {
             // copy data to render tex with compute shader
             ComputeBuffer floatsBuffer = new ComputeBuffer(data.Length, 1 * sizeof(float));
@@ -431,15 +440,15 @@ namespace com.jon_skoberne.Reader
             imgCopy.SetBuffer(kernelid, "floatsBuffer", floatsBuffer);
             imgCopy.SetInts("dims", this.dimX, this.dimY, this.dimZ);
             imgCopy.SetBool("onlyRedChannel", isOnlyRedChannel);
-            imgCopy.SetTexture(kernelid, "tex", this.rt1);
+            imgCopy.SetTexture(kernelid, "tex", destTex);
 
-            imgCopy.Dispatch(kernelid, this.rt1.width / 8, this.rt1.height / 8, this.rt1.volumeDepth / 8);
+            imgCopy.Dispatch(kernelid, destTex.width / 8, destTex.height / 8, destTex.volumeDepth / 8);
 
             floatsBuffer.Release();
             floatsBuffer = null;
 
             // copy render tex to tex3d with graphics blit
-            Graphics.CopyTexture(this.rt1, tex);
+            Graphics.CopyTexture(destTex, tex);
         }
 
         private void CopyTexToFloats(RenderTexture tex, float[] data, bool isOnlyRedChannel)
@@ -496,12 +505,8 @@ namespace com.jon_skoberne.Reader
             return tex3D;
         }
 
-        private Texture3D GetNormalizedDataGpu()
+        private void GetNormalizedDataGpu(Texture3D result)
         {
-            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
-            texture3d.wrapMode = TextureWrapMode.Clamp;
-
-
             ComputeBuffer floatdataBuffer = new ComputeBuffer(this.dataArray.Length, 1 * sizeof(float));
             floatdataBuffer.SetData(this.dataArray);
 
@@ -516,19 +521,14 @@ namespace com.jon_skoberne.Reader
             imgCalculator.SetTexture(kernelid, "OutputImage", this.rtNormData);
             imgCalculator.Dispatch(kernelid, this.rtNormData.width / 8, this.rtNormData.height / 8, this.rtNormData.volumeDepth / 8);
 
-            Graphics.CopyTexture(this.rtNormData, texture3d);
+            Graphics.CopyTexture(this.rtNormData, result);
 
             floatdataBuffer.Release();
             floatdataBuffer = null;
-
-            return texture3d;
         }
 
-        private Texture3D GetCentralDiffGradientGpu()
+        private void GetCentralDiffGradientGpu(Texture3D result)
         {
-            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
-            texture3d.wrapMode = TextureWrapMode.Clamp;
-
             int kernelid = imgCalculator.FindKernel("CalcGradient");
 
 
@@ -540,16 +540,11 @@ namespace com.jon_skoberne.Reader
             imgCalculator.SetTexture(kernelid, "OutputImage", this.rt2);
             imgCalculator.Dispatch(kernelid, this.rt2.width / 8, this.rt2.height / 8, this.rt2.volumeDepth / 8);
 
-            Graphics.CopyTexture(this.rt2, texture3d);
-
-            return texture3d;
+            Graphics.CopyTexture(this.rt2, result);
         }
 
-        private Texture3D GetGaussFilterGpu(RenderTexture firstTex, RenderTexture secondTex, RenderTexture tmpTex)
+        private void GetGaussFilterGpu(RenderTexture srcData, RenderTexture firstTex, RenderTexture secondTex, Texture3D result)
         {
-            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
-            texture3d.wrapMode = TextureWrapMode.Clamp;
-
             int kernelidX = imgFilter.FindKernel("KernelXFilter");
             int kernelidY = imgFilter.FindKernel("KernelYFilter");
             int kernelidZ = imgFilter.FindKernel("KernelZFilter");
@@ -557,28 +552,23 @@ namespace com.jon_skoberne.Reader
             imgFilter.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
             imgFilter.SetFloats("coefficients", 0.25f * 1, 0.25f * 2, 0.25f * 1, 0.0f);
 
-            imgFilter.SetTexture(kernelidX, "InputImage", firstTex); // first call will use this.rt2 from the gradient result, second will use normalized data
-            imgFilter.SetTexture(kernelidX, "OutputImage", tmpTex);
+            imgFilter.SetTexture(kernelidX, "InputImage", srcData); // first call will use this.rt2 from the gradient result, second will use normalized data
+            imgFilter.SetTexture(kernelidX, "OutputImage", firstTex);
             imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
 
-            imgFilter.SetTexture(kernelidY, "InputImage", tmpTex);
+            imgFilter.SetTexture(kernelidY, "InputImage", firstTex);
             imgFilter.SetTexture(kernelidY, "OutputImage", secondTex);
             imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
             
-            imgFilter.SetTexture(kernelidZ, "InputImage", secondTex);
+            imgFilter.SetTexture(kernelidZ, "InputImage", srcData);
             imgFilter.SetTexture(kernelidZ, "OutputImage", firstTex);
             imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
 
-            Graphics.CopyTexture(firstTex, texture3d);
-
-            return texture3d;
+            Graphics.CopyTexture(firstTex, result);
         }
 
-        private Texture3D GetSobelFilterGpu(RenderTexture firstTex, RenderTexture secondTex, RenderTexture sobelSpecial)
+        private void GetSobelFilterGpu(RenderTexture firstTex, RenderTexture secondTex, RenderTexture sobelSpecial, Texture3D result)
         {
-            Texture3D texture3d = new Texture3D(this.dimX, this.dimY, this.dimZ, TextureFormat.RGBAFloat, false);
-            texture3d.wrapMode = TextureWrapMode.Clamp;
-
             int kernelidX = imgFilter.FindKernel("KernelXFilter");
             int kernelidY = imgFilter.FindKernel("KernelYFilter");
             int kernelidZ = imgFilter.FindKernel("KernelZSobelFilter");
@@ -643,9 +633,7 @@ namespace com.jon_skoberne.Reader
             imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
             imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
 
-            Graphics.CopyTexture(sobelSpecial, texture3d);
-
-            return texture3d;
+            Graphics.CopyTexture(sobelSpecial, result);
         }
 
         #endregion

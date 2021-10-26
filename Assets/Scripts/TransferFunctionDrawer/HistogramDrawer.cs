@@ -45,7 +45,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             // how much "range" does each bucket cover
             this.textureData = data;
             //this.textureData = Resources.Load<Texture3D>("VolumeData/" + VolumeAssetNames.data3d);
-            this.renderTextureData = new RenderTexture(this.textureData.width, this.textureData.height, 0, RenderTextureFormat.ARGBFloat);
+            this.renderTextureData = new RenderTexture(this.textureData.width, this.textureData.height, 0, RenderTextureFormat.RFloat);
             this.renderTextureData.volumeDepth = this.textureData.depth;
             this.renderTextureData.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             this.renderTextureData.enableRandomWrite = true;
