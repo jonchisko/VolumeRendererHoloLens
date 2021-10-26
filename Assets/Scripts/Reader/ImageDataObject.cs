@@ -519,7 +519,7 @@ namespace com.jon_skoberne.Reader
             imgCalculator.SetInts("imgDims", this.dimX, this.dimY, this.dimZ);
 
             imgCalculator.SetTexture(kernelid, "OutputImage", this.rtNormData);
-            imgCalculator.Dispatch(kernelid, this.rtNormData.width / 8, this.rtNormData.height / 8, this.rtNormData.volumeDepth / 8);
+            imgCalculator.Dispatch(kernelid, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             Graphics.CopyTexture(this.rtNormData, result);
 
@@ -538,13 +538,14 @@ namespace com.jon_skoberne.Reader
 
             imgCalculator.SetTexture(kernelid, "InputImage", this.rtNormData);
             imgCalculator.SetTexture(kernelid, "OutputImage", this.rt2);
-            imgCalculator.Dispatch(kernelid, this.rt2.width / 8, this.rt2.height / 8, this.rt2.volumeDepth / 8);
+            imgCalculator.Dispatch(kernelid, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             Graphics.CopyTexture(this.rt2, result);
         }
 
         private void GetGaussFilterGpu(RenderTexture srcData, RenderTexture firstTex, RenderTexture secondTex, Texture3D result)
         {
+            Debug.Log("Running gauss with group x " + (this.dimX / 8 + 1) + ", group y " + (this.dimY / 8 + 1) + ", group z " + (this.dimZ / 8 + 1));
             int kernelidX = imgFilter.FindKernel("KernelXFilter");
             int kernelidY = imgFilter.FindKernel("KernelYFilter");
             int kernelidZ = imgFilter.FindKernel("KernelZFilter");
@@ -554,15 +555,15 @@ namespace com.jon_skoberne.Reader
 
             imgFilter.SetTexture(kernelidX, "InputImage", srcData); // first call will use this.rt2 from the gradient result, second will use normalized data
             imgFilter.SetTexture(kernelidX, "OutputImage", firstTex);
-            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidX, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetTexture(kernelidY, "InputImage", firstTex);
             imgFilter.SetTexture(kernelidY, "OutputImage", secondTex);
-            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidY, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
             
-            imgFilter.SetTexture(kernelidZ, "InputImage", srcData);
+            imgFilter.SetTexture(kernelidZ, "InputImage", secondTex);
             imgFilter.SetTexture(kernelidZ, "OutputImage", firstTex);
-            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidZ, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             Graphics.CopyTexture(firstTex, result);
         }
@@ -580,19 +581,19 @@ namespace com.jon_skoberne.Reader
 
             imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
             imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
-            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidX, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
             imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
-            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidY, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
             imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
-            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidZ, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
 
             // second round
@@ -600,38 +601,38 @@ namespace com.jon_skoberne.Reader
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
             imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
             imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
-            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidX, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 2.0f * -1, 0, 1 / 2.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
             imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
-            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidY, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
             imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
-            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidZ, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             // third round
             imgFilter.SetInt("resultSobelInd", 2);
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
             imgFilter.SetTexture(kernelidX, "InputImage", this.rtNormData);
             imgFilter.SetTexture(kernelidX, "OutputImage", secondTex);
-            imgFilter.Dispatch(kernelidX, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidX, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 4.0f * 1, 1 / 4.0f * 2, 1 / 4.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidY, "InputImage", secondTex);
             imgFilter.SetTexture(kernelidY, "OutputImage", firstTex);
-            imgFilter.Dispatch(kernelidY, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidY, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             imgFilter.SetFloats("coefficients", 1 / 2.0f * -1, 0, 1 / 2.0f * 1, 0.0f);
 
             imgFilter.SetTexture(kernelidZ, "InputImage", firstTex);
             imgFilter.SetTexture(kernelidZ, "OutputImage", sobelSpecial);
-            imgFilter.Dispatch(kernelidZ, secondTex.width / 8, secondTex.height / 8, secondTex.volumeDepth / 8);
+            imgFilter.Dispatch(kernelidZ, this.dimX / 8 + 1, this.dimY / 8 + 1, this.dimZ / 8 + 1);
 
             Graphics.CopyTexture(sobelSpecial, result);
         }

@@ -26,65 +26,73 @@ float4 ComputeConv(float4 coefficients, float4 pixel1, float4 pixel2, float4 pix
 [numthreads(8, 8, 8)]
 void KernelXFilter(uint3 id: SV_DispatchThreadID) 
 {
-    uint3 elementfirst = uint3(clamp(id.x - 1, 0, imgDims.x - 1), id.y, id.z);
-    uint3 elementlast = uint3(clamp(id.x + 1, 0, imgDims.x - 1), id.y, id.z);
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        uint3 elementfirst = uint3(max(id.x - 1, 0), id.y, id.z);
+        uint3 elementlast = uint3(min(id.x + 1, imgDims.x - 1), id.y, id.z);
 
-    float4 firstPixel = InputImage[elementfirst];
-    float4 middlePixel = InputImage[id.xyz];
-    float4 lastPixel = InputImage[elementlast];
+        float4 firstPixel = InputImage[elementfirst];
+        float4 middlePixel = InputImage[id.xyz];
+        float4 lastPixel = InputImage[elementlast];
 
-    
-    //float4 elementsX = float4(InputImage[elementfirst].x, InputImage[id.xyz].x, InputImage[elementlast].x, 0.0f);
-    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
-    OutputImage[id.xyz] = float4(result.xyz, result.w);
+
+        //float4 elementsX = float4(InputImage[elementfirst].x, InputImage[id.xyz].x, InputImage[elementlast].x, 0.0f);
+        float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+        OutputImage[id.xyz] = float4(result.xyz, result.w);
+    }
 }
 
 [numthreads(8, 8, 8)]
 void KernelYFilter(uint3 id: SV_DispatchThreadID)
 {
-    uint3 elementfirst = uint3(id.x, clamp(id.y - 1, 0, imgDims.y - 1), id.z);
-    uint3 elementlast = uint3(id.x, clamp(id.y + 1, 0, imgDims.y - 1), id.z);
-    
-    float4 firstPixel = InputImage[elementfirst];
-    float4 middlePixel = InputImage[id.xyz];
-    float4 lastPixel = InputImage[elementlast];
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        uint3 elementfirst = uint3(id.x, max(id.y - 1, 0), id.z);
+        uint3 elementlast = uint3(id.x, min(id.y + 1, imgDims.y - 1), id.z);
 
-    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
-    OutputImage[id.xyz] = float4(result.xyz, result.w);
+        float4 firstPixel = InputImage[elementfirst];
+        float4 middlePixel = InputImage[id.xyz];
+        float4 lastPixel = InputImage[elementlast];
+
+        float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+        OutputImage[id.xyz] = float4(result.xyz, result.w);
+    }
 }
 
 [numthreads(8, 8, 8)]
 void KernelZFilter(uint3 id: SV_DispatchThreadID)
 {
-    uint3 elementfirst = uint3(id.x, id.y, clamp(id.z - 1, 0, imgDims.z - 1));
-    uint3 elementlast = uint3(id.x, id.y, clamp(id.z + 1, 0, imgDims.z - 1));
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        uint3 elementfirst = uint3(id.x, id.y, max(id.z - 1, 0));
+        uint3 elementlast = uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1));
 
-    float4 firstPixel = InputImage[elementfirst];
-    float4 middlePixel = InputImage[id.xyz];
-    float4 lastPixel = InputImage[elementlast];
+        float4 firstPixel = InputImage[elementfirst];
+        float4 middlePixel = InputImage[id.xyz];
+        float4 lastPixel = InputImage[elementlast];
 
-    float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
-    OutputImage[id.xyz] = float4(result.xyz, result.w);
+        float4 result = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+        OutputImage[id.xyz] = float4(result.xyz, result.w);
+    }
 }
 
 [numthreads(8, 8, 8)]
 void KernelZSobelFilter(uint3 id: SV_DispatchThreadID)
 {
-    uint3 elementfirst = uint3(id.x, id.y, clamp(id.z - 1, 0, imgDims.z - 1));
-    uint3 elementlast = uint3(id.x, id.y, clamp(id.z + 1, 0, imgDims.z - 1));
-    
-    float4 firstPixel = InputImage[elementfirst];
-    float4 middlePixel = InputImage[id.xyz];
-    float4 lastPixel = InputImage[elementlast];
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        uint3 elementfirst = uint3(id.x, id.y, max(id.z - 1, 0));
+        uint3 elementlast = uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1));
 
-    float4 convResult = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+        float4 firstPixel = InputImage[elementfirst];
+        float4 middlePixel = InputImage[id.xyz];
+        float4 lastPixel = InputImage[elementlast];
 
-    float4 result = OutputImage[id.xyz].xyzw;
-    
-    switch (resultSobelInd) {
+        float4 convResult = ComputeConv(coefficients, firstPixel, middlePixel, lastPixel);
+
+        float4 result = OutputImage[id.xyz].xyzw;
+
+        switch (resultSobelInd) {
         case 0: result[0] = convResult.x; break;
         case 1: result[1] = convResult.x; break;
         case 2: result[2] = convResult.x; break;
+        }
+        OutputImage[id.xyz] = result;
     }
-    OutputImage[id.xyz] = result;
 }

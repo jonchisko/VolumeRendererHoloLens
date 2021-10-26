@@ -35,14 +35,18 @@ float4 GetGradient(uint3 id)
 [numthreads(8,8,8)]
 void Normalize(uint3 id: SV_DispatchThreadID)
 {
-    uint floatDataIndex = id.x + id.y * imgDims.x + id.z * (imgDims.x * imgDims.y);
-    float4 normalized = float4((floatData[floatDataIndex] - minValue) / range, 0.0f, 0.0f, 0.0f);
-    OutputImage[id.xyz] = normalized;
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        uint floatDataIndex = id.x + id.y * imgDims.x + id.z * (imgDims.x * imgDims.y);
+        float4 normalized = float4((floatData[floatDataIndex] - minValue) / range, 0.0f, 0.0f, 0.0f);
+        OutputImage[id.xyz] = normalized;
+    }
 }
 
 [numthreads(8,8,8)]
 void CalcGradient(uint3 id: SV_DispatchThreadID)
 {
-    OutputImage[id.xyz] = GetGradient(id);
+    if (id.x < imgDims.x && id.y < imgDims.y && id.z < imgDims.z) {
+        OutputImage[id.xyz] = GetGradient(id);
+    }
 }
 
