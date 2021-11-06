@@ -801,7 +801,7 @@
 #elif MODE_SRF
                     final_result += frag_surf_r(i);
 #elif MODE_CINEMA
-                    //final_result += frag_volpath(i);
+                    final_result += frag_volpath(i);
 #elif MODE_MIP
                     final_result += frag_mip(i);
 #endif

@@ -89,7 +89,7 @@ Material:
     - _MaxDensityVal: 1.1
     - _MaxVal: 1.1
     - _Metallic: 0
-    - _MinVal: 0.10739188
+    - _MinVal: 0
     - _Mode: 0
     - _NumSteps: 512
     - _OcclusionStrength: 1
@@ -112,7 +112,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 0, g: 1, b: 1, a: 1}
     - _LightDirection: {r: 1, g: 0, b: 1, a: 0}
     - _LightPosition: {r: 2.0000005, g: 2.0000005, b: 2.0000005, a: 1}
     - _Plane: {r: 0, g: 1, b: 0, a: -0}

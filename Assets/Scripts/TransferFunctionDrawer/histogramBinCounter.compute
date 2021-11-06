@@ -1,25 +1,51 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel Main1D
+#pragma kernel Main2D
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float4> Result;
+// RWTexture2D<float4> Result;
 RWTexture3D<float4> Data;
+RWTexture3D<float4> GradientData;
 
 RWStructuredBuffer<int> _CountedBins;
-int _BinNum;
-float _Delta;
+
+uint3 _DataDims;
+uint2 _BinsDims;
+uint _MaxVal;
+
+float _DeltaX;
+float _DeltaY;
+float _MaxNormGrad;
 
 // Helper functions
+int GetBinNumber(float value, float delta)
+{
+    return (int)ceil(value / delta) - 1;
+}
 
-void IncreaseYourBin(float density) {
-    int bin = (int)ceil(density / _Delta) - 1;
+void IncreaseYourBin1D(float density) 
+{
+    int bin = GetBinNumber(density, _DeltaX);
     int _orgVal = 0;
-    InterlockedAdd(_CountedBins[bin], 1, _orgVal);
+    InterlockedAdd(_CountedBins[bin], 1, _orgVal); // Important note: NOT efficient!
     //_CountedBins[bin] = (int)(100.0 * density);
     //InterlockedAdd(_CountedBins[bin], density, _orgVal);
 }
 
+void IncreaseYourBin2D(float density, float4 gradient) 
+{
+    int binX = GetBinNumber(density, _DeltaX);
+    int binY = GetBinNumber(length(gradient.xyz) / _MaxNormGrad, _DeltaY); // normalizing the length, which is max sqwrt(1^2 + 1^2 + 1^2)
+
+    int _orgVal = 0;
+    InterlockedAdd(_CountedBins[binX + binY * _BinsDims.x], 1, _orgVal); // Important note: NOT efficient!
+}
+
+void NormalizeWithMaxVal(uint linInd) 
+{
+    //_CountedBins
+}
 // End helper functions
 
 
@@ -28,7 +54,19 @@ void IncreaseYourBin(float density) {
 
 
 [numthreads(8,8,8)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void Main1D(uint3 id : SV_DispatchThreadID)
 {
-    IncreaseYourBin(Data[id.xyz]);
+    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z) 
+    {
+        IncreaseYourBin1D(Data[id.xyz].x);
+    }
+}
+
+[numthreads(8, 8, 8)]
+void Main2D(uint3 id : SV_DispatchThreadID) 
+{
+    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z)
+    {
+        IncreaseYourBin2D(Data[id.xyz].x, GradientData[id.xyz].xyzw);
+    }
 }

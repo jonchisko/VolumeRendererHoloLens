@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class TfMenu : MonoBehaviour
 {
-    public GameObject hist;
+    public GameObject hist1d;
+    public GameObject hist2d_grad;
     public GameObject tf1d;
     public GameObject tf2d;
     public GameObject tfellipse;
@@ -17,9 +18,14 @@ public class TfMenu : MonoBehaviour
     }
 
     
-    public void ToggleHistogram()
+    public void ToggleHistogram1d()
     {
-        hist.SetActive(!hist.activeSelf);
+        hist1d.SetActive(!hist1d.activeSelf);
+    }
+
+    public void ToggleHistogram2d_grad()
+    {
+        hist2d_grad.SetActive(!hist2d_grad.activeSelf);
     }
 
     public void ToggleTf1D()

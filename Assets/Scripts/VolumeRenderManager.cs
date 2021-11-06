@@ -7,7 +7,8 @@ public class VolumeRenderManager : MonoBehaviour
 {
     public GameObject volumeCube;
     public ShaderMenu shaderMenuInstance;
-    public HistogramDrawer histogramInstance;
+    public HistogramDrawer histogram1d;
+    public HistogramDrawer histogram2d;
     public ImageDataObject ido;
     public Material ctMaterial;
     //public Material tfMaterial;
@@ -47,7 +48,8 @@ public class VolumeRenderManager : MonoBehaviour
 
     private void InitHistogram()
     {
-        histogramInstance.InitializeHistogramState(ido.GetTexture3D());
+        histogram1d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1)); // Rather get gaussed gradients for the histogram
+        histogram2d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1)); // Rather get gaussed gradients for the histogram
     }
 
 }
