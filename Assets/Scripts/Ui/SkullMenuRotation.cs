@@ -26,7 +26,7 @@ namespace com.jon_skoberne.UI
         private void RotateSelf()
         {
             zRotation += rotationSpeed * Time.deltaTime;
-            zRotation = Mathf.Clamp(zRotation, -180.0f, 180.0f);
+            if (zRotation >= 180.0f) zRotation = -180.0f;
             this.transform.localRotation = Quaternion.Euler(oldRotation.x, oldRotation.y, zRotation);
         }
     }
