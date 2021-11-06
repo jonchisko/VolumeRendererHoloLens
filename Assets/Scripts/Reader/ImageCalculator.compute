@@ -27,7 +27,8 @@ float4 GetGradient(int3 id)
     float dataz1 = InputImage[uint3(id.x, id.y, max(id.z - 1, 0))].x;
     float dataz2 = InputImage[uint3(id.x, id.y, min(id.z + 1, imgDims.z - 1))].x;
 
-    return float4((datax1 - datax2) / 2.0f, (datay1 - datay2) / 2.0f, (dataz1 - dataz2) / 2.0, currentValue);
+    //return float4((datax1 - datax2) / range, (datay1 - datay2) / range, (dataz1 - dataz2) / range, currentValue);
+    return float4(datax1 - datax2, datay1 - datay2, dataz1 - dataz2, currentValue);
 }
 
 
