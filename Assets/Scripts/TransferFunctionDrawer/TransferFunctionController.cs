@@ -13,8 +13,9 @@ namespace com.jon_skoberne.TransferFunctionDrawer
     public enum TransferFunctionMode
     {
         TF1D,
-        TF2D,
+        TF1Dplus,
         Ellipse,
+        TFRectangle,
     }
 
     public enum TransferFunctionColorMode
@@ -127,6 +128,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         private void OnEnable()
         {
+            Debug.Log("TF Controller awake");
             OnEnableDrawer();
         }
 
@@ -235,7 +237,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         colorsOpacitiesBuffer = null;
                         break;
                     }
-                case TransferFunctionMode.TF2D:
+                case TransferFunctionMode.TF1Dplus:
                     {
                         ComputeBuffer positionsColorsBuffer = new ComputeBuffer(pointColorsPositions.Length, 2 * sizeof(float));
                         ComputeBuffer colorsColorsBuffer = new ComputeBuffer(pointColorsColors.Length, 4 * sizeof(float));
@@ -611,6 +613,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                 colorHsv.b = sliderVal.CurrentValue();
                 Debug.Log("Read point colors from sliders: " + colorHsv.r + ", " + colorHsv.g + ", " + colorHsv.b);
                 Color colorRgb = GetRgbFromHsv(colorHsv);
+                colorRgb.a = this.selectedPoint.GetColor().a;
                 this.selectedPoint.SetColor(colorRgb);
             }
         }
@@ -621,7 +624,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             switch (tfMode)
             {
                 case TransferFunctionMode.TF1D: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tf1dName : VolumeAssetNames.tf1dOpacityName; break;
-                case TransferFunctionMode.TF2D: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tf2dName : VolumeAssetNames.tf2dOpacityName; break;
+                case TransferFunctionMode.TF1Dplus: fileMark += VolumeAssetNames.tf1dplusName; break;
                 case TransferFunctionMode.Ellipse: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tfEllipseName : VolumeAssetNames.tfEllipseOpacityName; break;
             }
             return fileMark;
@@ -778,6 +781,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         #region Point Slider Methods
         private void SetColorSlidersValueToPointValue()
         {
+            Debug.Log("Opacity: " + this.selectedPoint.GetColor().a + ", y: " + this.selectedPoint.GetPositionY());
             this.sliderPosX?.SetSliderValue(this.selectedPoint.GetPositionX());
             this.sliderPosY?.SetSliderValue(this.selectedPoint.GetPositionY());
             this.sliderRx?.SetSliderValue(this.selectedPoint.GetRx());

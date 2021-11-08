@@ -147,7 +147,7 @@
 
             float4 getTF2DColor(float density, float gradientMagnitude) 
             {
-                return tex2Dlod(_Transfer2D, float4(density, gradientMagnitude, 0.0f, 0.0f));
+                return tex2Dlod(_Transfer2D, float4(density, gradientMagnitude/MAX_CUBE_DIST, 0.0f, 0.0f));
             }
 
             //blinn phong model

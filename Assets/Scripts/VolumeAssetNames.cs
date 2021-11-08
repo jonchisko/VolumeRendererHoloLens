@@ -21,9 +21,11 @@ public class VolumeAssetNames
     public static string tf1dName = "_tf1d";
     public static string tf1dOpacityName = "_tf1d_opacity";
 
-    public static string tf2dName = "_tf2d";
-    public static string tf2dOpacityName = "_tf2d_opacity";
+    public static string tf1dplusName = "_tf1dplus";
 
     public static string tfEllipseName = "_tfElipse";
     public static string tfEllipseOpacityName = "_tfElipse_opacity";
+
+    public static string tfRectangleName = "_tfRectangle";
+    public static string tfRectangleOpacityName = "_tfRectangle";
 }
