@@ -15,9 +15,9 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         private float rx;
         private float ry;
         private float w;
-        private float r;
-        private float g;
-        private float b;
+        private float h;
+        private float s;
+        private float v;
         private float a;
         private bool endPoint;
 
@@ -26,16 +26,16 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         }
 
-        public TransferFunctionSaveObject(float x, float y, float rx, float ry, float w, float r, float g, float b, float a, bool endPoint)
+        public TransferFunctionSaveObject(float x, float y, float rx, float ry, float w, float h, float s, float v, float a, bool endPoint)
         {
             this.x = x;
             this.y = y;
             this.rx = rx;
             this.ry = ry;
             this.w = w;
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.h = h;
+            this.s = s;
+            this.v = v;
             this.a = a;
             this.endPoint = endPoint;
         }
@@ -67,10 +67,10 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         public void SetColor(Color col)
         {
-            r = col.r;
-            g = col.g;
-            b = col.b;
-            a = col.a;
+            this.h = col.r;
+            this.s = col.g;
+            this.v = col.b;
+            this.a = col.a;
         }
 
         public void SetEndPoint(bool endPoint)
@@ -112,7 +112,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         public Color GetColor()
         {
-            return new Color(r, g, b, a);
+            return new Color(this.h, this.s, this.v, a);
         }
 
     }

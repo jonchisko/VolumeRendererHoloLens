@@ -548,6 +548,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             p2.SetPositionY(0);
             p2.SetEndPoint(true);
 
+            Debug.Log("Border points values (p1 alpha p2 alpha): " + p1.GetColor().a + ", " + p2.GetColor().a);
             switch (colorMode)
             {
                 case TransferFunctionColorMode.HSV: tfPointsColors.AddLast(p1); tfPointsColors.AddLast(p2); break;
@@ -612,9 +613,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                 colorHsv.g = sliderSat.CurrentValue();
                 colorHsv.b = sliderVal.CurrentValue();
                 Debug.Log("Read point colors from sliders: " + colorHsv.r + ", " + colorHsv.g + ", " + colorHsv.b);
-                Color colorRgb = GetRgbFromHsv(colorHsv);
-                colorRgb.a = this.selectedPoint.GetColor().a;
-                this.selectedPoint.SetColor(colorRgb);
+                colorHsv.a = this.selectedPoint.GetColor().a;
+                this.selectedPoint.SetColor(colorHsv);
             }
         }
 
@@ -788,7 +788,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             this.sliderRy?.SetSliderValue(this.selectedPoint.GetRy());
             this.sliderWeight?.SetSliderValue(this.selectedPoint.GetEllipsoidWeight());
 
-            Color hsv = GetHsvFromRgb(this.selectedPoint.GetColor());
+            Color hsv = this.selectedPoint.GetColor();
             this.sliderHue?.SetSliderValue(hsv.r);
             this.sliderSat?.SetSliderValue(hsv.g);
             this.sliderVal?.SetSliderValue(hsv.b);
