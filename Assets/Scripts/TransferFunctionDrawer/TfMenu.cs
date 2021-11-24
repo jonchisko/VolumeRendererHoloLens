@@ -9,6 +9,7 @@ public class TfMenu : MonoBehaviour
     public GameObject tf1d;
     public GameObject tf2d;
     public GameObject tfellipse;
+    public GameObject tfrect;
 
 
     // Start is called before the first frame update
@@ -33,6 +34,7 @@ public class TfMenu : MonoBehaviour
         tf1d.SetActive(true);
         tf2d.SetActive(false);
         tfellipse.SetActive(false);
+        tfrect.SetActive(false);
     }
 
     public void ToggleTf2D()
@@ -40,6 +42,7 @@ public class TfMenu : MonoBehaviour
         tf1d.SetActive(false);
         tf2d.SetActive(true);
         tfellipse.SetActive(false);
+        tfrect.SetActive(false);
     }
 
     public void ToggleTfEllipse()
@@ -47,6 +50,14 @@ public class TfMenu : MonoBehaviour
         tf1d.SetActive(false);
         tf2d.SetActive(false);
         tfellipse.SetActive(true);
+        tfrect.SetActive(false);
     }
 
+    public void ToggleTfRect()
+    {
+        tf1d.SetActive(false);
+        tf2d.SetActive(false);
+        tfellipse.SetActive(false);
+        tfrect.SetActive(true);
+    }
 }

@@ -48,6 +48,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public ComputeShader csTf1d;
         public ComputeShader csTf2d;
         public ComputeShader csEllipse;
+        public ComputeShader csRect;
         public ComputeShader csClear;
 
         [Header("Point Color Sliders")]
@@ -106,7 +107,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
             if (tfPoint == null) Debug.LogError("TransferFunctionPoint is not set in TransferFunctionController!");
 
-            if (tfMode != TransferFunctionMode.Ellipse)
+            if (tfMode == TransferFunctionMode.TF1D || tfMode == TransferFunctionMode.TF1Dplus)
             {
                 if (tfPointsColors.Count == 0) AddBorderPoints(TransferFunctionColorMode.HSV);
                 if (tfPointsOpacities.Count == 0) AddBorderPoints(TransferFunctionColorMode.Opacity);
@@ -286,98 +287,15 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                     }
                 case TransferFunctionMode.Ellipse:
                     {
-                        if (tfPointsColors.Count > 0)
-                        {
-                            Debug.Log("COMPUTE ELIPSE");
-                            ComputeBuffer pointColorsRxRyBuffer = new ComputeBuffer(pointColorsRxRy.Length, 2 * sizeof(float));
-                            ComputeBuffer elipseColorsWeightsBuffer = new ComputeBuffer(pointColorsWeights.Length, sizeof(float));
-                            ComputeBuffer positionsColorsBuffer = new ComputeBuffer(pointColorsPositions.Length, 2 * sizeof(float));
-                            ComputeBuffer colorsColorsBuffer = new ComputeBuffer(pointColorsColors.Length, 4 * sizeof(float));
+                        ComputeEllipseRect(csEllipse, pointColorsRxRy, pointColorsWeights, pointColorsPositions, pointColorsColors, pointOpacitiesRxRy, pointOpacitiesWeights,
+                            pointOpacitiesPositions, pointOpacitiesColors);
+                        break;
+                    }
 
-                            pointColorsRxRyBuffer.SetData(pointColorsRxRy);
-                            elipseColorsWeightsBuffer.SetData(pointColorsWeights);
-                            positionsColorsBuffer.SetData(pointColorsPositions);
-                            colorsColorsBuffer.SetData(pointColorsColors);
-
-
-
-                            csEllipse.SetBuffer(0, "_PointColorsRxRy", pointColorsRxRyBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsElipseWeights", elipseColorsWeightsBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsPositions", positionsColorsBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsColors", colorsColorsBuffer);
-
-
-
-                            csEllipse.SetInt("_Width", rt.width);
-                            csEllipse.SetInt("_Height", rt.height);
-                            csEllipse.SetBool("_OpMode", false);
-                            csEllipse.SetInt("_NumColPoints", pointColorsPositions.Length);
-                            csEllipse.SetTexture(0, "Result", rt);
-                            csEllipse.Dispatch(0, rt.width / 16, rt.height / 16, 1);
-
-                            Graphics.CopyTexture(rt, transferFunctionTex);
-
-                            pointColorsRxRyBuffer.Release();
-                            pointColorsRxRyBuffer = null;
-                            elipseColorsWeightsBuffer.Release();
-                            elipseColorsWeightsBuffer = null;
-                            positionsColorsBuffer.Release();
-                            positionsColorsBuffer = null;
-                            colorsColorsBuffer.Release();
-                            colorsColorsBuffer = null;
-                        } else
-                        {
-                            csClear.SetTexture(0, "Result", rt);
-                            csClear.SetBool("_OpMode", false);
-                            csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
-
-                            Graphics.CopyTexture(rt, transferFunctionTex);
-                        }
-
-                        if(tfPointsOpacities.Count > 0)
-                        {
-                            ComputeBuffer pointOpacitiesRxRyBuffer = new ComputeBuffer(pointOpacitiesRxRy.Length, 2 * sizeof(float));
-                            ComputeBuffer elipseOpacitiesWeightsBuffer = new ComputeBuffer(pointOpacitiesWeights.Length, sizeof(float));
-                            ComputeBuffer positionsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesPositions.Length, 2 * sizeof(float));
-                            ComputeBuffer colorsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesColors.Length, 4 * sizeof(float));
-
-                            pointOpacitiesRxRyBuffer.SetData(pointOpacitiesRxRy);
-                            elipseOpacitiesWeightsBuffer.SetData(pointOpacitiesWeights);
-                            positionsOpacitiesBuffer.SetData(pointOpacitiesPositions);
-                            colorsOpacitiesBuffer.SetData(pointOpacitiesColors);
-
-
-                            csEllipse.SetBuffer(0, "_PointColorsRxRy", pointOpacitiesRxRyBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsElipseWeights", elipseOpacitiesWeightsBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsPositions", positionsOpacitiesBuffer);
-                            csEllipse.SetBuffer(0, "_PointColorsColors", colorsOpacitiesBuffer);
-
-                            csEllipse.SetBool("_OpMode", true);
-                            csEllipse.SetInt("_NumColPoints", pointOpacitiesPositions.Length);
-                            csEllipse.SetTexture(0, "Result", rt);
-                            csEllipse.Dispatch(0, rt.width / 16, rt.height / 16, 1);
-
-
-                            Graphics.CopyTexture(rt, transferFunctionTex);
-
-
-                            pointOpacitiesRxRyBuffer.Release();
-                            pointOpacitiesRxRyBuffer = null;
-                            elipseOpacitiesWeightsBuffer.Release();
-                            elipseOpacitiesWeightsBuffer = null;
-                            positionsOpacitiesBuffer.Release();
-                            positionsOpacitiesBuffer = null;
-                            colorsOpacitiesBuffer.Release();
-                            colorsOpacitiesBuffer = null;
-                        }
-                        else
-                        {
-                            csClear.SetTexture(0, "Result", rt);
-                            csClear.SetBool("_OpMode", true);
-                            csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
-
-                            Graphics.CopyTexture(rt, transferFunctionTex);
-                        }
+                case TransferFunctionMode.TFRectangle:
+                    {
+                        ComputeEllipseRect(csRect, pointColorsRxRy, pointColorsWeights, pointColorsPositions, pointColorsColors, pointOpacitiesRxRy, pointOpacitiesWeights,
+                            pointOpacitiesPositions, pointOpacitiesColors);
 
                         break;
                     }
@@ -387,6 +305,104 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             OnEventRedrawTexture?.Invoke(this.transferFunctionTex);
 
 
+        }
+
+        private void ComputeEllipseRect(ComputeShader cs, Vector2[] pointColorsRxRy, float[] pointColorsWeights, Vector2[] pointColorsPositions, Vector4[] pointColorsColors,
+            Vector2[] pointOpacitiesRxRy, float[] pointOpacitiesWeights, Vector2[] pointOpacitiesPositions, Vector4[] pointOpacitiesColors)
+        {
+            if (tfPointsColors.Count > 0)
+            {
+                Debug.Log("COMPUTE ELIPSE/RECT");
+                ComputeBuffer pointColorsRxRyBuffer = new ComputeBuffer(pointColorsRxRy.Length, 2 * sizeof(float));
+                ComputeBuffer elipseColorsWeightsBuffer = new ComputeBuffer(pointColorsWeights.Length, sizeof(float));
+                ComputeBuffer positionsColorsBuffer = new ComputeBuffer(pointColorsPositions.Length, 2 * sizeof(float));
+                ComputeBuffer colorsColorsBuffer = new ComputeBuffer(pointColorsColors.Length, 4 * sizeof(float));
+
+                pointColorsRxRyBuffer.SetData(pointColorsRxRy);
+                elipseColorsWeightsBuffer.SetData(pointColorsWeights);
+                positionsColorsBuffer.SetData(pointColorsPositions);
+                colorsColorsBuffer.SetData(pointColorsColors);
+
+
+
+                cs.SetBuffer(0, "_PointColorsRxRy", pointColorsRxRyBuffer);
+                cs.SetBuffer(0, "_PointColorsElipseWeights", elipseColorsWeightsBuffer);
+                cs.SetBuffer(0, "_PointColorsPositions", positionsColorsBuffer);
+                cs.SetBuffer(0, "_PointColorsColors", colorsColorsBuffer);
+
+
+
+                cs.SetInt("_Width", rt.width);
+                cs.SetInt("_Height", rt.height);
+                cs.SetBool("_OpMode", false);
+                cs.SetInt("_NumColPoints", pointColorsPositions.Length);
+                cs.SetTexture(0, "Result", rt);
+                cs.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+
+                Graphics.CopyTexture(rt, transferFunctionTex);
+
+                pointColorsRxRyBuffer.Release();
+                pointColorsRxRyBuffer = null;
+                elipseColorsWeightsBuffer.Release();
+                elipseColorsWeightsBuffer = null;
+                positionsColorsBuffer.Release();
+                positionsColorsBuffer = null;
+                colorsColorsBuffer.Release();
+                colorsColorsBuffer = null;
+            }
+            else
+            {
+                csClear.SetTexture(0, "Result", rt);
+                csClear.SetBool("_OpMode", false);
+                csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+
+                Graphics.CopyTexture(rt, transferFunctionTex);
+            }
+
+            if (tfPointsOpacities.Count > 0)
+            {
+                ComputeBuffer pointOpacitiesRxRyBuffer = new ComputeBuffer(pointOpacitiesRxRy.Length, 2 * sizeof(float));
+                ComputeBuffer elipseOpacitiesWeightsBuffer = new ComputeBuffer(pointOpacitiesWeights.Length, sizeof(float));
+                ComputeBuffer positionsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesPositions.Length, 2 * sizeof(float));
+                ComputeBuffer colorsOpacitiesBuffer = new ComputeBuffer(pointOpacitiesColors.Length, 4 * sizeof(float));
+
+                pointOpacitiesRxRyBuffer.SetData(pointOpacitiesRxRy);
+                elipseOpacitiesWeightsBuffer.SetData(pointOpacitiesWeights);
+                positionsOpacitiesBuffer.SetData(pointOpacitiesPositions);
+                colorsOpacitiesBuffer.SetData(pointOpacitiesColors);
+
+
+                cs.SetBuffer(0, "_PointColorsRxRy", pointOpacitiesRxRyBuffer);
+                cs.SetBuffer(0, "_PointColorsElipseWeights", elipseOpacitiesWeightsBuffer);
+                cs.SetBuffer(0, "_PointColorsPositions", positionsOpacitiesBuffer);
+                cs.SetBuffer(0, "_PointColorsColors", colorsOpacitiesBuffer);
+                
+                cs.SetBool("_OpMode", true);
+                cs.SetInt("_NumColPoints", pointOpacitiesPositions.Length);
+                cs.SetTexture(0, "Result", rt);
+                cs.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+
+
+                Graphics.CopyTexture(rt, transferFunctionTex);
+
+
+                pointOpacitiesRxRyBuffer.Release();
+                pointOpacitiesRxRyBuffer = null;
+                elipseOpacitiesWeightsBuffer.Release();
+                elipseOpacitiesWeightsBuffer = null;
+                positionsOpacitiesBuffer.Release();
+                positionsOpacitiesBuffer = null;
+                colorsOpacitiesBuffer.Release();
+                colorsOpacitiesBuffer = null;
+            }
+            else
+            {
+                csClear.SetTexture(0, "Result", rt);
+                csClear.SetBool("_OpMode", true);
+                csClear.Dispatch(0, rt.width / 16, rt.height / 16, 1);
+
+                Graphics.CopyTexture(rt, transferFunctionTex);
+            }
         }
 
         private Vector2 ConstructTextureVectorFromPoint(TransferFunctionPoint p)
@@ -626,6 +642,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                 case TransferFunctionMode.TF1D: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tf1dName : VolumeAssetNames.tf1dOpacityName; break;
                 case TransferFunctionMode.TF1Dplus: fileMark += VolumeAssetNames.tf1dplusName; break;
                 case TransferFunctionMode.Ellipse: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tfEllipseName : VolumeAssetNames.tfEllipseOpacityName; break;
+                case TransferFunctionMode.TFRectangle: fileMark += colorMode == TransferFunctionColorMode.HSV ? VolumeAssetNames.tfRectangleName : VolumeAssetNames.tfRectangleOpacityName; break;
             }
             return fileMark;
         }
@@ -738,7 +755,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             }
 
             ClearPoints(mode);
-            if(tfMode != TransferFunctionMode.Ellipse)
+            if(tfMode == TransferFunctionMode.TF1D || tfMode == TransferFunctionMode.TF1Dplus)
             {
                 AddBorderPoints(mode);
             }

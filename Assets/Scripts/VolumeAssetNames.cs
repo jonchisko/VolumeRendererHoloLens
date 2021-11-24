@@ -27,5 +27,5 @@ public class VolumeAssetNames
     public static string tfEllipseOpacityName = "_tfElipse_opacity";
 
     public static string tfRectangleName = "_tfRectangle";
-    public static string tfRectangleOpacityName = "_tfRectangle";
+    public static string tfRectangleOpacityName = "_tfRectangle_opacity";
 }
