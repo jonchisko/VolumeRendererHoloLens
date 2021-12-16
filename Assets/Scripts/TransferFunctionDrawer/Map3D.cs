@@ -131,7 +131,6 @@ public class Map3D : MonoBehaviour
 
     void Draw3dMap()
     {
-        Debug.Log("Map: Drawing in compute shader");
         Draw();
         onSelectedMapRegion?.Invoke(GetSelectedHistValues());
     }
