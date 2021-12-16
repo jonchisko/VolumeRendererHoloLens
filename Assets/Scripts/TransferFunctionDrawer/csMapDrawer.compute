@@ -1,0 +1,62 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture3D<float4> Result;
+
+float3 MapDims;
+float4 DimValues;
+
+struct Offset {
+    int min;
+    int max;
+};
+
+int GetPos(float dim, float pos) {
+    return max(0, int(ceil(dim * pos)) - 1);
+}
+
+Offset GetOffset(int pos, int offset, float dim) {
+    int min_pos = max(0, pos - offset);
+    int max_pos = min(int(dim) - 1, pos + offset);
+    Offset result;
+    result.min = min_pos;
+    result.max = max_pos;
+    return result;
+}
+
+bool IsInSelectedArea(uint3 id) {
+    int x_offset = GetPos(MapDims.x, DimValues.w);
+    int y_offset = GetPos(MapDims.y, DimValues.w);
+    int z_offset = GetPos(MapDims.z, DimValues.w);
+
+    int x_pos = GetPos(MapDims.x, DimValues.x);
+    int y_pos = GetPos(MapDims.y, DimValues.y);
+    int z_pos = GetPos(MapDims.z, DimValues.z);
+
+    Offset x_off = GetOffset(x_pos, x_offset, MapDims.x);
+    Offset y_off = GetOffset(y_pos, y_offset, MapDims.y);
+    Offset z_off = GetOffset(z_pos, z_offset, MapDims.z);
+
+    int x, y, z;
+    
+    x = id.x;
+    y = id.y;
+    z = id.z;
+
+    return x >= x_off.min && x <= x_off.max && y >= y_off.min && y <= y_off.max && z >= z_off.min && z <= z_off.max;
+}
+
+[numthreads(8,8,8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < uint(MapDims.x) && id.y < uint(MapDims.y) && id.z < uint(MapDims.z)) {
+        if (IsInSelectedArea(id)) {
+            Result[id.xyz] = float4(1.0, 1.0, 1.0, 1.0);
+        }
+        else {
+            Result[id.xyz] = float4(0.2, 0.2, 0.2, 0.2);
+        }
+    }
+}
