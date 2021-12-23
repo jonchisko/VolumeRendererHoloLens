@@ -53,10 +53,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if (id.x < uint(MapDims.x) && id.y < uint(MapDims.y) && id.z < uint(MapDims.z)) {
         if (IsInSelectedArea(id)) {
-            Result[id.xyz] = float4(1.0, 1.0, 1.0, 1.0);
+            Result[id.xyz] = float4(1.0, 1.0, 1.0, 0.9);
         }
         else {
-            Result[id.xyz] = float4(0.2, 0.2, 0.2, 0.2);
+            Result[id.xyz] = float4(0.1, 0.1, 0.1, 0.05);
         }
     }
 }

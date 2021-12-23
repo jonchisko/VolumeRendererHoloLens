@@ -18,7 +18,49 @@ float _DeltaX;
 float _DeltaY;
 float _MaxNormGrad;
 
+float4 _SelectedDataDims;
+
 // Helper functions
+struct Offset {
+    int min;
+    int max;
+};
+
+int GetPos(float dim, float pos) {
+    return max(0, int(ceil(dim * pos)) - 1);
+}
+
+Offset GetOffset(int pos, int offset, float dim) {
+    int min_pos = max(0, pos - offset);
+    int max_pos = min(int(dim) - 1, pos + offset);
+    Offset result;
+    result.min = min_pos;
+    result.max = max_pos;
+    return result;
+}
+
+bool IsInSelectedArea(uint3 id) {
+    int x_offset = GetPos(_DataDims.x, _SelectedDataDims.w);
+    int y_offset = GetPos(_DataDims.y, _SelectedDataDims.w);
+    int z_offset = GetPos(_DataDims.z, _SelectedDataDims.w);
+
+    int x_pos = GetPos(_DataDims.x, _SelectedDataDims.x);
+    int y_pos = GetPos(_DataDims.y, _SelectedDataDims.y);
+    int z_pos = GetPos(_DataDims.z, _SelectedDataDims.z);
+
+    Offset x_off = GetOffset(x_pos, x_offset, _DataDims.x);
+    Offset y_off = GetOffset(y_pos, y_offset, _DataDims.y);
+    Offset z_off = GetOffset(z_pos, z_offset, _DataDims.z);
+
+    int x, y, z;
+
+    x = id.x;
+    y = id.y;
+    z = id.z;
+
+    return x >= x_off.min && x <= x_off.max && y >= y_off.min && y <= y_off.max && z >= z_off.min && z <= z_off.max;
+}
+
 int GetBinNumber(float value, float delta)
 {
     return (int)ceil(value / delta) - 1;
@@ -56,7 +98,7 @@ void NormalizeWithMaxVal(uint linInd)
 [numthreads(8,8,8)]
 void Main1D(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z) 
+    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z && IsInSelectedArea(id))
     {
         IncreaseYourBin1D(Data[id.xyz].x);
     }
@@ -65,7 +107,7 @@ void Main1D(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 8)]
 void Main2D(uint3 id : SV_DispatchThreadID) 
 {
-    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z)
+    if (id.x < _DataDims.x && id.y < _DataDims.y && id.z < _DataDims.z && IsInSelectedArea(id))
     {
         IncreaseYourBin2D(Data[id.xyz].x, GradientData[id.xyz].xyzw);
     }

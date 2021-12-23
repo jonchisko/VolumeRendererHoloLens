@@ -37,17 +37,38 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         private RenderTexture renderTextureData;
         private RenderTexture renderTextureGradientData;
         private Texture2D histTexture;
+        private Map3D.SelectedHistValues selectedValues;
         private int yMax;
         private int amplifier = 1;
 
         private void Start()
         {
-
+            this.selectedValues = new Map3D.SelectedHistValues(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
         private void OnDestroy()
         {
             ReleaseTmpRenderTex();
+        }
+
+        private void OnEnable()
+        {
+            RegisterEvents();
+        }
+
+        private void OnDisable()
+        {
+            DeregisterEvents();
+        }
+
+        private void RegisterEvents()
+        {
+            Map3D.onSelectedMapRegion += SetSelectedData;
+        }
+
+        private void DeregisterEvents()
+        {
+            Map3D.onSelectedMapRegion -= SetSelectedData;
         }
 
         public void InitializeHistogramState(Texture3D data, Texture3D gradientData)
@@ -57,6 +78,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
             // how much "range" does each bucket cover
             this.textureData = data;
+            
             switch (this.dimMode)
             {
                 case Dim.D1:
@@ -107,7 +129,6 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             if (this.drawMode != Mode.Lin)
             {
                 this.drawMode = Mode.Lin;
-                Draw();
             }
         }
 
@@ -116,13 +137,16 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             if (this.drawMode != Mode.Log)
             {
                 this.drawMode = Mode.Log;
-                Draw();
             }
         }
 
         public void ChangeAmplifier(SliderEventData data)
         {
             this.amplifier = Mathf.CeilToInt(data.NewValue);
+        }
+
+        public void OnDraw()
+        {
             Draw();
         }
 
@@ -147,36 +171,29 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         private void CalculateBucketValues()
         {
             Debug.Log("Histogram state: Computed = " + this.computedFlag + ", Tex is null: " + this.textureData == null);
-            if(!this.computedFlag && this.textureData != null)
+            Debug.Log("Expensive Histogram computation!");
+
+            switch (this.dimMode)
             {
-                Debug.Log("Expensive Histogram computation!");
-
-                switch(this.dimMode)
-                {
-                    case Dim.D1:
-                        {
-                            CalculateBuckets1D();
-                            break;
-                        }
-                    case Dim.D2:
-                        {
-                            CalculateBuckets2D();
-                            break;
-                        }
-                }
-
-                this.yMax = 0;
-                
-                foreach (var value in this.bucketValues)
-                {
-                    if (this.yMax < value) this.yMax = value;
-                }
-
-                this.computedFlag = true;
-                // ^^^^^ perhaps a better alternative would be to have per thread buffers and count there and then combine them in the shader, this would require some block syncs
+                case Dim.D1:
+                    {
+                        CalculateBuckets1D();
+                        break;
+                    }
+                case Dim.D2:
+                    {
+                        CalculateBuckets2D();
+                        break;
+                    }
             }
 
-            ReleaseTmpRenderTex();
+            this.yMax = 0;
+
+            foreach (var value in this.bucketValues)
+            {
+                if (this.yMax < value) this.yMax = value;
+            }
+            //this.yMax = this.renderTextureData.width * this.renderTextureData.height * this.renderTextureData.volumeDepth; // Temporary test @jon
         }
 
         private void CalculateBuckets1D()
@@ -189,6 +206,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             binCounter.SetBuffer(kernel1D, "_CountedBins", bucketsBuffer);
             binCounter.SetFloat("_DeltaX", this.deltaX);
             binCounter.SetInts("_DataDims", this.renderTextureData.width, this.renderTextureData.height, this.renderTextureData.volumeDepth);
+            binCounter.SetFloats("_SelectedDataDims", this.selectedValues.pos_x, this.selectedValues.pos_y, this.selectedValues.pos_z, this.selectedValues.filter_dim);
 
             binCounter.SetTexture(kernel1D, "Data", this.renderTextureData);
             binCounter.Dispatch(kernel1D, this.renderTextureData.width / 8 + 1, this.renderTextureData.height / 8 + 1, this.renderTextureData.volumeDepth / 8 + 1);
@@ -213,6 +231,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
             binCounter.SetInts("_BinsDims", this.textureDimension, this.textureDimension);
             binCounter.SetInt("_MaxVal", this.renderTextureGradientData.width * this.renderTextureGradientData.height * this.renderTextureGradientData.volumeDepth);
             binCounter.SetFloat("_MaxNormGrad", Constants.maxNormalisedMagnitude);
+            binCounter.SetFloats("_SelectedDataDims", this.selectedValues.pos_x, this.selectedValues.pos_y, this.selectedValues.pos_z, this.selectedValues.filter_dim);
 
             binCounter.SetTexture(kernel2D, "Data", this.renderTextureData);
             binCounter.SetTexture(kernel2D, "GradientData", this.renderTextureGradientData);
@@ -300,6 +319,13 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         {
             this.renderTextureData?.Release();
             this.renderTextureGradientData?.Release();
+        }
+
+        private void SetSelectedData(Map3D.SelectedHistValues selectedData)
+        {
+            Debug.Log("Calculating hist values by new selected data.");
+            this.selectedValues = selectedData;
+            CalculateBucketValues();
         }
     }
 }

@@ -30,10 +30,11 @@ public class Map3D : MonoBehaviour
     public SliderLogic slider_pos_y;
     public SliderLogic slider_pos_z;
     public SliderLogic slider_filter_dim;
+    public GameObject menu;
 
 
     [SerializeField]
-    int map_dim = 25;
+    int map_dim = 200;
     [SerializeField]
     ComputeShader compute_filter;
     [SerializeField]
@@ -41,10 +42,10 @@ public class Map3D : MonoBehaviour
 
     RenderTexture map_rt;
     Texture3D map_t3d;
-    float pos_x = 0.5f;
-    float pos_y = 0.5f;
-    float pos_z = 0.5f;
-    float filter_dim = 0.5f;
+    float pos_x = 1.0f;
+    float pos_y = 1.0f;
+    float pos_z = 1.0f;
+    float filter_dim = 1.0f;
 
     void Awake()
     {
@@ -147,5 +148,11 @@ public class Map3D : MonoBehaviour
     SelectedHistValues GetSelectedHistValues()
     {
         return new SelectedHistValues(this.pos_x, this.pos_y, this.pos_z, this.filter_dim);
+    }
+
+    public void ToggleMenu()
+    {
+        this.menu.SetActive(!this.menu.activeSelf);
+        this.map_cube.SetActive(!this.map_cube.activeSelf);
     }
 }
