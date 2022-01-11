@@ -79,7 +79,6 @@ void IncreaseYourBin2D(float density, float4 gradient)
 {
     int binX = GetBinNumber(density, _DeltaX);
     int binY = GetBinNumber(length(gradient.xyz) / _MaxNormGrad, _DeltaY); // normalizing the length, which is max sqwrt(1^2 + 1^2 + 1^2)
-
     int _orgVal = 0;
     InterlockedAdd(_CountedBins[binX + binY * _BinsDims.x], 1, _orgVal); // Important note: NOT efficient!
 }
