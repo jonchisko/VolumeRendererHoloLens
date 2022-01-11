@@ -78,7 +78,6 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
             // how much "range" does each bucket cover
             this.textureData = data;
-            
             switch (this.dimMode)
             {
                 case Dim.D1:
@@ -285,11 +284,13 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
             Debug.Log("Draw 2D Hist");
             int maxCnt = -1;
+            float maxBucketValue = Mathf.Max(this.bucketValues);
             for (int bucket = 0; bucket < this.bucketValues.Length; bucket++)
             {
                 if (this.bucketValues[bucket] > 0)
                 {
-                    texValues[bucket] = Color.white;
+                    float greyShade = Mathf.Log10(this.bucketValues[bucket]) / Mathf.Log10(maxBucketValue);
+                    texValues[bucket] = Color.white;// new Color(greyShade, greyShade, greyShade);//Color.white;
                     maxCnt = bucket / 2048;
                 }
             }
