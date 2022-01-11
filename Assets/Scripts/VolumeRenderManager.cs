@@ -48,8 +48,9 @@ public class VolumeRenderManager : MonoBehaviour
 
     private void InitHistogram()
     {
-        histogram1d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1)); // Rather get gaussed gradients for the histogram
-        histogram2d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1)); // Rather get gaussed gradients for the histogram
+        // We are using gaussed gradients for the histogram
+        histogram1d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1)); 
+        histogram2d.InitializeHistogramState(ido.GetTexture3D(), ido.GetTexture3DGradient(1));
     }
 
 }
