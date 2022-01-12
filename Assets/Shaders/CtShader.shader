@@ -267,11 +267,11 @@
                 return float3(abs(position.x), abs(position.y), abs(position.z));
             }
 
-            float3 getOffsetPosition(v2f i, float3 dir) {
+            float3 getOffsetPosition(v2f i, float3 initial_tuple, float3 dir) {
 #ifdef PERLIN_NOISE
-                return i.vertexLocal + (2.0f * dir / _NumSteps) * perlinNoise(i.uv);
+                return i.vertexLocal + (2.0f * dir / _NumSteps) * perlinNoise(initial_tuple.xy);
 #else
-                return i.vertexLocal + (2.0f * dir / _NumSteps) * rand_1_05(i.uv);
+                return i.vertexLocal + (2.0f * dir / _NumSteps) * random3(initial_tuple); //rand_1_05(initial_pair);
 #endif
             }
 
@@ -544,12 +544,12 @@
                 return L;
             }
 
-            fixed4 frag_volpath(v2f i) : SV_Target
+            fixed4 frag_volpath(v2f i, float3 initial_tuple) : SV_Target
             {
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
 
                 float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
+                float3 rayStartPos = getOffsetPosition(i, initial_tuple, rayDir);
 
                 float4 radiance = float4(0, 0, 0, 0);
 
@@ -568,11 +568,11 @@
 
             // different fragment functions
 
-            fixed4 frag_mip(v2f i) : SV_Target
+            fixed4 frag_mip(v2f i, float3 initial_tuple) : SV_Target
             {
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
                 float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
+                float3 rayStartPos = getOffsetPosition(i, initial_tuple, rayDir);
 
                 float4 maxCol = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 float3 maxGradient = float3(0.0f, 0.0f, 0.0f);
@@ -627,12 +627,12 @@
             }
 
             // direct volume rendering
-            fixed4 frag_dvr(v2f i) : SV_Target
+            fixed4 frag_dvr(v2f i, float3 initial_tuple) : SV_Target
             {
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
 
                 float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
+                float3 rayStartPos = getOffsetPosition(i, initial_tuple, rayDir);
                 float4 col = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 for (int iStep = 0; iStep < _NumSteps; iStep++) {
@@ -677,11 +677,11 @@
                 return col;
             }
 
-            fixed4 frag_dvr_2(v2f i) : SV_Target{
+            fixed4 frag_dvr_2(v2f i, float3 initial_tuple) : SV_Target{
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
 
                 float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
+                float3 rayStartPos = getOffsetPosition(i, initial_tuple, rayDir);
                 float4 col = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 for (int iStep = 0; iStep < _NumSteps; iStep++) {
@@ -729,12 +729,12 @@
             }
 
 
-            fixed4 frag_surf_r(v2f i) : SV_Target
+            fixed4 frag_surf_r(v2f i, float3 initial_tuple) : SV_Target
             {
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
 
                 float3 rayDir = -normalize(i.vectorToSurface);
-                float3 rayStartPos = getOffsetPosition(i, rayDir);
+                float3 rayStartPos = getOffsetPosition(i, initial_tuple, rayDir);
 
                 rayStartPos = rayStartPos + (StepSize * _NumSteps) * rayDir;
                 rayDir = -rayDir;
@@ -797,13 +797,13 @@
                 
                 for (int ind = 0; ind < number_samples; ind++) {
 #if MODE_DVR
-                    final_result += frag_dvr(i);
+                    final_result += frag_dvr(i, float3(i.uv, ind));
 #elif MODE_SRF
-                    final_result += frag_surf_r(i);
+                    final_result += frag_surf_r(i, float3(i.uv, ind));
 #elif MODE_CINEMA
-                    final_result += frag_volpath(i);
+                    final_result += frag_volpath(i, float3(i.uv, ind));
 #elif MODE_MIP
-                    final_result += frag_mip(i);
+                    final_result += frag_mip(i, float3(i.uv, ind));
 #endif
                 }
                 return final_result / number_samples;
