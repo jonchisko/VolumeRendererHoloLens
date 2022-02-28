@@ -9,6 +9,13 @@ using UnityEngine;
 
 namespace com.jon_skoberne.TransferFunctionDrawer
 {
+    public enum TransferFunctionDims
+    {
+        None,
+        Dim1,
+        Dim2,
+    }
+
 
     public enum TransferFunctionMode
     {
@@ -27,7 +34,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
     public class TransferFunctionController : MonoBehaviour
     {
-        public delegate void OnRedrawTexture(Texture2D tex);
+        public delegate void OnRedrawTexture(Texture2D tex, TransferFunctionDims tfDim);
         public static OnRedrawTexture OnEventRedrawTexture;
 
         public GameObject tfPoint;
@@ -187,6 +194,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                 i++;
             }
 
+            TransferFunctionDims tfDim = TransferFunctionDims.None;
+
             switch (tfMode)
             {
                 case TransferFunctionMode.TF1D:
@@ -236,6 +245,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         positionsOpacitiesBuffer = null;
                         colorsOpacitiesBuffer.Release();
                         colorsOpacitiesBuffer = null;
+
+                        tfDim = TransferFunctionDims.Dim1;
                         break;
                     }
                 case TransferFunctionMode.TF1Dplus:
@@ -283,12 +294,14 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                         //positionsOpacitiesBuffer = null;
                         //colorsOpacitiesBuffer.Release();
                         //colorsOpacitiesBuffer = null;
+                        tfDim = TransferFunctionDims.Dim1;
                         break;
                     }
                 case TransferFunctionMode.Ellipse:
                     {
                         ComputeEllipseRect(csEllipse, pointColorsRxRy, pointColorsWeights, pointColorsPositions, pointColorsColors, pointOpacitiesRxRy, pointOpacitiesWeights,
                             pointOpacitiesPositions, pointOpacitiesColors);
+                        tfDim = TransferFunctionDims.Dim2;
                         break;
                     }
 
@@ -296,13 +309,13 @@ namespace com.jon_skoberne.TransferFunctionDrawer
                     {
                         ComputeEllipseRect(csRect, pointColorsRxRy, pointColorsWeights, pointColorsPositions, pointColorsColors, pointOpacitiesRxRy, pointOpacitiesWeights,
                             pointOpacitiesPositions, pointOpacitiesColors);
-
+                        tfDim = TransferFunctionDims.Dim2;
                         break;
                     }
 
             }
 
-            OnEventRedrawTexture?.Invoke(this.transferFunctionTex);
+            OnEventRedrawTexture?.Invoke(this.transferFunctionTex, tfDim);
 
 
         }

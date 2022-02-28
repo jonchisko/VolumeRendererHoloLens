@@ -1,0 +1,115 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel NoneTfActiveGrid
+#pragma kernel Tf1dActiveGrid
+#pragma kernel Tf2dActiveGrid
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+RWTexture3D<float> VolumeData;
+RWTexture3D<float4> VolumeGradientData;
+RWTexture2D<float4> TransferFunctionData;
+RWTexture3D<float> ActiveGridData;
+
+int3 volumeDims;
+int2 tfDims;
+int3 gridDims;
+
+float CalculateGradientMagnitude(float3 gradient) {
+    float result = length(gradient)/1.73; // normalize with unit cube distance
+    return result;
+}
+
+float sampleNoTf(int3 id) {
+    float density = VolumeData[id.xyz];
+    return density;
+}
+
+float sampleTf1d(int3 id) {
+    float density = VolumeData[id.xyz];
+    int tfX = ceil(density * tfDims.x);
+    int2 tfInd = int2(tfX, 0); // sample only bottom row
+    float opacity = TransferFunctionData[tfInd.xy].w;
+    return opacity;
+}
+
+float sampleTf2d(int3 id) {
+    float density = VolumeData[id.xyz];
+    float gradientMagnitude = CalculateGradientMagnitude(VolumeGradientData[id.xyz].xyz);
+    int tfX = ceil(density * tfDims.x);
+    int tfY = ceil(gradientMagnitude * tfDims.y);
+    int2 tfInd = int2(tfX, tfY);
+    float opacity = TransferFunctionData[tfInd.xy].w;
+    return opacity;
+}
+
+
+[numthreads(8,8,8)]
+void NoneTfActiveGrid(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+        int3 gridPosId = int3(id.x, id.y, id.z);
+        int3 volPosId = gridPosId * gridDims;
+
+        int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
+        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+
+        float fmax = 0.0;
+
+        for (int k = minVolPos.z; k < maxVolPos.z; k++) {
+            for (int j = minVolPos.y; j < maxVolPos.y; j++) {
+                for (int i = minVolPos.x; i < maxVolPos.x; i++) {
+                    fmax = max(fmax, sampleNoTf(int3(i, j, k)));
+                }
+            }
+        }
+        ActiveGridData[gridPosId.xyz] = fmax;
+    }
+}
+
+[numthreads(8, 8, 8)]
+void Tf1dActiveGrid(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+        int3 gridPosId = int3(id.x, id.y, id.z);
+        int3 volPosId = gridPosId * gridDims;
+
+        int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
+        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+
+        float fmax = 0.0;
+
+        for (int k = minVolPos.z; k < maxVolPos.z; k++) {
+            for (int j = minVolPos.y; j < maxVolPos.y; j++) {
+                for (int i = minVolPos.x; i < maxVolPos.x; i++) {
+                    fmax = max(fmax, sampleTf1d(int3(i, j, k)));
+                }
+            }
+        }
+        ActiveGridData[gridPosId.xyz] = fmax;
+    }
+}
+
+[numthreads(8, 8, 8)]
+void Tf2dActiveGrid(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+        int3 gridPosId = int3(id.x, id.y, id.z);
+        int3 volPosId = gridPosId * gridDims;
+
+        int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
+        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+
+        float fmax = 0.0;
+
+        for (int k = minVolPos.z; k < maxVolPos.z; k++) {
+            for (int j = minVolPos.y; j < maxVolPos.y; j++) {
+                for (int i = minVolPos.x; i < maxVolPos.x; i++) {
+                    fmax = max(fmax, sampleTf2d(int3(i, j, k)));
+                }
+            }
+        }
+        ActiveGridData[gridPosId.xyz] = fmax;
+    }
+}

@@ -13,12 +13,17 @@ public class VolumeRenderManager : MonoBehaviour
     public Material ctMaterial;
     //public Material tfMaterial;
 
+    public delegate void OnSetTexture(Texture3D volumeData, Texture3D gradientData, Texture2D transferTexture, TransferFunctionDims tfDim);
+    public static OnSetTexture onEventSetTexture;
+
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log(this.name + ": Starting up");
         InitVolumeCube();
         InitHistogram();
         RegisterEvents();
+        onEventSetTexture?.Invoke(ido.tex3D, ido.tex3Dgradient, new Texture2D(0, 0), TransferFunctionDims.None);
     }
 
     private void OnDestroy()
@@ -36,9 +41,11 @@ public class VolumeRenderManager : MonoBehaviour
         TransferFunctionController.OnEventRedrawTexture -= SetTexture;
     }
 
-    private void SetTexture(Texture2D tex)
+    private void SetTexture(Texture2D tex, TransferFunctionDims tfDim)
     {
+        Debug.Log(this.name + ": Setting texture");
         ctMaterial.SetTexture("_Transfer2D", tex);
+        onEventSetTexture?.Invoke(ido.tex3D, ido.tex3Dgradient, tex, tfDim);
     }
 
     private void InitVolumeCube()
