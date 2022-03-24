@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class BounderBuilder : MonoBehaviour
 {
+    public delegate void activeGrid(Texture3D activeGrid);
+    public static activeGrid OnFinishedActiveGrid;
+
     public ComputeShader activeGridCalculator;
     public Texture3D activeGridTexture;
     
@@ -177,5 +180,8 @@ public class BounderBuilder : MonoBehaviour
         Graphics.CopyTexture(activeGridRenderTexture, this.activeGridTexture);
         activeGridRenderTexture.Release();
         activeGridRenderTexture = null;
+
+
+        OnFinishedActiveGrid?.Invoke(this.activeGridTexture);
     }
 }
