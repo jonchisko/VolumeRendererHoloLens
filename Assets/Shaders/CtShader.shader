@@ -594,34 +594,36 @@
                     if (!isInsideClip(currentPos)) continue;
 #endif
 
-
-                    if (density >= _MinVal && density <= _MaxVal) {
-                        if (density > maxDensity) {
-                            maxDensity = density;
-#if TF2D_MODE || LOCAL_LIGHTING_BP || LOCAL_LIGHTING_CT
-                            maxGradient = getGradient(currentPos);
-#endif
-
 #if TF1D_MODE
-                            maxCol = getTF1DColor(density);
+                    const float4 col = getTF1DColor(density);
+                    const float weightedDensity = col.w * density;
+                    const bool isInDensityRange = (weightedDensity > _MinVal && weightedDensity <= _MaxVal);
 #elif TF2D_MODE
-                            maxCol = getTF2DColor(density, length(maxGradient));
+                    const float4 col = getTF2DColor(density, length(gradient));
+                    const float weightedDensity = col.w * density;
+                    const bool isInDensityRange = (weightedDensity > _MinVal && weightedDensity <= _MaxVal);
 #else
-                            maxCol = float4(1.0f, 1.0f, 1.0f, maxDensity);
+                    const float4 col = float4(1.0f, 1.0f, 1.0f, density);
+                    const bool isInDensityRange = (density > _MinVal && density <= _MaxVal);
 #endif 
-                            maxDensity = density;
-                            maxPosition = currentPos;
-                        }
+
+
+                    if (isInDensityRange && col.w > maxCol.w) {
+#if TF2D_MODE || LOCAL_LIGHTING_BP || LOCAL_LIGHTING_CT
+                        maxGradient = getGradient(currentPos);
+#endif
+                        maxCol = col;
+                        maxPosition = currentPos;
                     }
                 }
 
 
 #if LOCAL_LIGHTING_BP
-                float4 finalCol = float4(calculateLighting_blinnphong(maxCol.rgb, maxGradient, maxPosition, rayDir), maxDensity);
+                float4 finalCol = float4(calculateLighting_blinnphong(maxCol.rgb, maxGradient, maxPosition, rayDir), maxCol.w);
 #elif LOCAL_LIGHTING_CT
-                float4 finalCol = float4(calculateLighting_cooktorrance(maxCol.rgb, maxGradient, maxPosition, rayDir), maxDensity);
+                float4 finalCol = float4(calculateLighting_cooktorrance(maxCol.rgb, maxGradient, maxPosition, rayDir), maxCol.w);
 #else
-                float4 finalCol = float4(maxCol.rgb, maxDensity);
+                float4 finalCol = float4(maxCol.rgb, maxCol.w);
 #endif
                 return finalCol;
             }
@@ -666,8 +668,8 @@
 #elif LOCAL_LIGHTING_CT
                     src.rgb = calculateLighting_cooktorrance(src.rgb, normal, currentPos, rayDir);
 #endif
-
-                    if (density <= _MinVal || density >= _MaxVal)
+                    float weightedDensity = src.a * density;
+                    if (weightedDensity <= _MinVal || weightedDensity > _MaxVal)
                         src.a = 0.0f;
 
                     col.rgb = src.a * src.rgb + (1.0f - src.a) * col.rgb; // interpolating old col value and new src value
@@ -677,7 +679,7 @@
                 return col;
             }
 
-            fixed4 frag_dvr_2(v2f i, float3 initial_tuple) : SV_Target{
+            fixed4 frag_dvr_2(v2f i, float3 initial_tuple) : SV_Target {
                 const float StepSize = MAX_CUBE_DIST / _NumSteps;
 
                 float3 rayDir = -normalize(i.vectorToSurface);
@@ -715,8 +717,8 @@
                     src.rgb = calculateLighting_cooktorrance(src.rgb, normal, currentPos, rayDir);
 #endif
                     
-
-                    if (density <= _MinVal || density >= _MaxVal) {
+                    float weightedDensity = src.a * density;
+                    if (weightedDensity <= _MinVal || weightedDensity > _MaxVal) {
                         src.r = 0.0f;
                         src.g = 0.0f;
                         src.b = 0.0f;
@@ -747,28 +749,30 @@
                     if (abs_xyz.x > _XRange || abs_xyz.y > _YRange || abs_xyz.z > _ZRange) {
                         continue;
                     } // dont sample if we are outside the unit box bounds*/
-                    const float density = getDensity(currentPos);
+                    float density = getDensity(currentPos);
 
 #if CLIP
                     if (!isInsideClip(currentPos)) continue;
 #endif
 
-
-                    if (density >= _MinVal && density <= _MaxVal) {
 #if TF2D_MODE || LOCAL_LIGHTING_BP || LOCAL_LIGHTING_CT
-                        float3 normal = getGradient(currentPos);
+                    float3 normal = getGradient(currentPos);
 #endif
 
 #if TF2D_MODE
-                        col = getTF2DColor(density, length(normal));
+                    float4 sample_col = getTF2DColor(density, length(normal));
 #else
-                        col = getTF1DColor(density);
+                    float4 sample_col = getTF1DColor(density);
 #endif
+                    density *= sample_col.w;
+                    if (density > _MinVal && density < _MaxVal) {
 
 #if LOCAL_LIGHTING_BP
-                        col.rgb = calculateLighting_blinnphong(col.rgb, normal, currentPos, -rayDir);
+                        col.rgb = calculateLighting_blinnphong(sample_col.rgb, normal, currentPos, -rayDir);
 #elif LOCAL_LIGHTING_CT
-                        col.rgb = calculateLighting_cooktorrance(col.rgb, normal, currentPos, -rayDir);
+                        col.rgb = calculateLighting_cooktorrance(sample_col.rgb, normal, currentPos, -rayDir);
+#else
+                        col.rgb = sample_col.rgb;
 #endif
                         col.a = 1.0f;
                         break;
