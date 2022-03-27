@@ -239,12 +239,12 @@ public class MeshCreator : MonoBehaviour
         
         int vertexCount = activeGrid.width * activeGrid.height * activeGrid.depth;
 
-        var bounds = new Bounds(new Vector3(0.5f, 0.5f, 0.5f), new Vector3(1f, 1f, 1f));
+        //var bounds = new Bounds(new Vector3(0.5f, 0.5f, 0.5f), new Vector3(1f, 1f, 1f));
 
         var mesh = new Mesh
         {
             name = "Procedural ActiveGrid Mesh",
-            bounds = bounds,
+            //bounds = bounds,
         };
 
         // VERTEX ATTRIBUTES
@@ -291,12 +291,14 @@ public class MeshCreator : MonoBehaviour
         mesh.subMeshCount = 1;
         mesh.SetSubMesh(0, new SubMeshDescriptor(0, vertexCount, MeshTopology.Points)
         {
-            bounds = bounds,
+            //bounds = bounds,
             vertexCount = vertexCount
         }, MeshUpdateFlags.DontRecalculateBounds);
 
 
         GetComponent<MeshFilter>().mesh = mesh;
+
+        mesh.RecalculateBounds();
 
         // CLEANUP
         verts.Dispose();
