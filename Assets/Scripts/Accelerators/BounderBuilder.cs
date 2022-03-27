@@ -40,12 +40,12 @@ public class BounderBuilder : MonoBehaviour
 
     void RegisterToEvents()
     {
-        VolumeRenderManager.onEventSetTexture += OnTfEvent;
+        VolumeRenderManager.onEventChangeTfDim += OnTfEvent;
     }
 
     void UnregisterFromEvents()
     {
-        VolumeRenderManager.onEventSetTexture -= OnTfEvent;
+        VolumeRenderManager.onEventChangeTfDim -= OnTfEvent;
     }
 
     public void OnTfEvent(Texture3D volData, Texture3D gradientData, Texture2D tfTex, TransferFunctionDims tfDim)
@@ -135,7 +135,7 @@ public class BounderBuilder : MonoBehaviour
         // run compute shader to get maximum opacity values and store them into this grid block
         // a) -> density -> get opacity from the transfer function
         // b) -> density, derivative -> get opacity from the 2d transfer function
-        Debug.Log("Calculating active grid blocks in " + this.name);
+        Debug.Log("Calculating active grid blocks in " + this.name + ", tf dims: " + tfcase);
         Debug.Log("Size of active grid: " + ((this.volumeData.width / this.celDim) * (this.volumeData.height / this.celDim) * (this.volumeData.volumeDepth / this.celDim)));
         this.activeGridTexture = new Texture3D(this.volumeData.width/this.celDim, this.volumeData.height/this.celDim, this.volumeData.volumeDepth / this.celDim, TextureFormat.RFloat, false);
         RenderTexture activeGridRenderTexture = new RenderTexture(this.activeGridTexture.width, this.activeGridTexture.height, 0, RenderTextureFormat.RFloat);
@@ -147,6 +147,7 @@ public class BounderBuilder : MonoBehaviour
         int kernelId = activeGridCalculator.FindKernel("NoneTfActiveGrid");
         activeGridCalculator.SetInts("volumeDims", this.volumeData.width, this.volumeData.height, this.volumeData.volumeDepth);
         activeGridCalculator.SetInts("gridDims", activeGridRenderTexture.width, activeGridRenderTexture.height, activeGridRenderTexture.volumeDepth);
+        activeGridCalculator.SetInts("gridCellSize", this.celDim, this.celDim, this.celDim);
 
         switch(tfcase)
         {
@@ -175,7 +176,7 @@ public class BounderBuilder : MonoBehaviour
         activeGridCalculator.SetTexture(kernelId, "VolumeData", this.volumeData);
         activeGridCalculator.SetTexture(kernelId, "ActiveGridData", activeGridRenderTexture);
         
-        activeGridCalculator.Dispatch(kernelId, activeGridRenderTexture.width / 8 + 1, activeGridRenderTexture.height / 8 + 1, activeGridRenderTexture.volumeDepth / 8 + 1);
+        activeGridCalculator.Dispatch(kernelId, activeGridRenderTexture.width / this.celDim + 1, activeGridRenderTexture.height / this.celDim + 1, activeGridRenderTexture.volumeDepth / this.celDim + 1);
 
         Graphics.CopyTexture(activeGridRenderTexture, this.activeGridTexture);
         activeGridRenderTexture.Release();

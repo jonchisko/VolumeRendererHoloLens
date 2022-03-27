@@ -15,6 +15,7 @@ RWTexture3D<float> ActiveGridData;
 int3 volumeDims;
 int2 tfDims;
 int3 gridDims;
+int3 gridCellSize;
 
 float CalculateGradientMagnitude(float3 gradient) {
     float result = length(gradient)/1.73; // normalize with unit cube distance
@@ -45,12 +46,13 @@ float sampleTf2d(int3 id) {
 }
 
 
-[numthreads(8,8,8)]
+[numthreads(8, 8, 8)]
 void NoneTfActiveGrid(uint3 id : SV_DispatchThreadID)
 {
-    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+    int3 gridPosId = int3(id.x, id.y, id.z);
+    if (gridPosId.x < gridDims.x && gridPosId.y < gridDims.y && gridPosId.z < gridDims.z) {
         int3 gridPosId = int3(id.x, id.y, id.z);
-        int3 volPosId = gridPosId * gridDims;
+        int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
         int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
@@ -64,16 +66,17 @@ void NoneTfActiveGrid(uint3 id : SV_DispatchThreadID)
                 }
             }
         }
-        ActiveGridData[gridPosId.xyz] = fmax;
+        ActiveGridData[gridPosId.xyz].r = fmax;
     }
 }
 
 [numthreads(8, 8, 8)]
 void Tf1dActiveGrid(uint3 id : SV_DispatchThreadID)
 {
-    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+    int3 gridPosId = int3(id.x, id.y, id.z);
+    if (gridPosId.x < gridDims.x && gridPosId.y < gridDims.y && gridPosId.z < gridDims.z) {
         int3 gridPosId = int3(id.x, id.y, id.z);
-        int3 volPosId = gridPosId * gridDims;
+        int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
         int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
@@ -87,16 +90,17 @@ void Tf1dActiveGrid(uint3 id : SV_DispatchThreadID)
                 }
             }
         }
-        ActiveGridData[gridPosId.xyz] = fmax;
+        ActiveGridData[gridPosId.xyz].r = fmax;
     }
 }
 
 [numthreads(8, 8, 8)]
 void Tf2dActiveGrid(uint3 id : SV_DispatchThreadID)
 {
-    if ((int)id.x < gridDims.x && (int)id.y < gridDims.y && (int)id.z < gridDims.z) {
+    int3 gridPosId = int3(id.x, id.y, id.z);
+    if (gridPosId.x < gridDims.x && gridPosId.y < gridDims.y && gridPosId.z < gridDims.z) {
         int3 gridPosId = int3(id.x, id.y, id.z);
-        int3 volPosId = gridPosId * gridDims;
+        int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
         int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
@@ -110,6 +114,6 @@ void Tf2dActiveGrid(uint3 id : SV_DispatchThreadID)
                 }
             }
         }
-        ActiveGridData[gridPosId.xyz] = fmax;
+        ActiveGridData[gridPosId.xyz].r = fmax;
     }
 }
