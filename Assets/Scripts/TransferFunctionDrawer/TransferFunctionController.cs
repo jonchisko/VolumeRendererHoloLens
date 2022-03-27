@@ -34,7 +34,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
     public class TransferFunctionController : MonoBehaviour
     {
-        public delegate void OnRedrawTexture(Texture2D tex, TransferFunctionDims tfDim);
+        public delegate void OnRedrawTexture(Texture2D tex);
         public static OnRedrawTexture OnEventRedrawTexture;
 
         public GameObject tfPoint;
@@ -315,7 +315,7 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
             }
 
-            OnEventRedrawTexture?.Invoke(this.transferFunctionTex, tfDim);
+            OnEventRedrawTexture?.Invoke(this.transferFunctionTex);
 
 
         }
