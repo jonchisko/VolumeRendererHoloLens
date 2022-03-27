@@ -13,8 +13,10 @@ public class VolumeRenderManager : MonoBehaviour
     public Material ctMaterial;
     //public Material tfMaterial;
 
-    public delegate void OnSetTexture(Texture3D volumeData, Texture3D gradientData, Texture2D transferTexture, TransferFunctionDims tfDim);
-    public static OnSetTexture onEventSetTexture;
+    public delegate void OnChangeTfDim(Texture3D volumeData, Texture3D gradientData, Texture2D transferTexture, TransferFunctionDims tfDim);
+    public static OnChangeTfDim onEventChangeTfDim;
+
+    private Texture2D currentTransferTexture;
 
     // Start is called before the first frame update
     void Start()
@@ -23,7 +25,7 @@ public class VolumeRenderManager : MonoBehaviour
         InitVolumeCube();
         InitHistogram();
         RegisterEvents();
-        onEventSetTexture?.Invoke(ido.tex3D, ido.tex3Dgradient, new Texture2D(0, 0), TransferFunctionDims.None);
+        onEventChangeTfDim?.Invoke(ido.tex3D, ido.tex3Dgradient, new Texture2D(0, 0), TransferFunctionDims.None);
     }
 
     private void OnDestroy()
@@ -34,18 +36,25 @@ public class VolumeRenderManager : MonoBehaviour
     private void RegisterEvents()
     {
         TransferFunctionController.OnEventRedrawTexture += SetTexture;
+        ShaderMenu.onEventChangeTfDim += SetTfDim;
     }
 
     private void DeregisterEvents()
     {
         TransferFunctionController.OnEventRedrawTexture -= SetTexture;
+        ShaderMenu.onEventChangeTfDim -= SetTfDim;
     }
 
-    private void SetTexture(Texture2D tex, TransferFunctionDims tfDim)
+    private void SetTexture(Texture2D tex)
     {
         Debug.Log(this.name + ": Setting texture");
-        ctMaterial.SetTexture("_Transfer2D", tex);
-        onEventSetTexture?.Invoke(ido.tex3D, ido.tex3Dgradient, tex, tfDim);
+        this.currentTransferTexture = tex;
+        ctMaterial.SetTexture("_Transfer2D", this.currentTransferTexture);
+    }
+
+    private void SetTfDim(TransferFunctionDims tfDim)
+    {
+        onEventChangeTfDim?.Invoke(this.ido.tex3D, this.ido.tex3Dgradient, this.currentTransferTexture, tfDim);
     }
 
     private void InitVolumeCube()

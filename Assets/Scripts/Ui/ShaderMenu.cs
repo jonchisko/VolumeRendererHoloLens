@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using com.jon_skoberne.Reader;
 using Microsoft.MixedReality.Toolkit.UI;
+using com.jon_skoberne.TransferFunctionDrawer;
 
 namespace com.jon_skoberne.UI
 {
     public class ShaderMenu : MonoBehaviour
     {
+        public delegate void OnChangeTfDim(TransferFunctionDims tfDim);
+        public static OnChangeTfDim onEventChangeTfDim;
+
+
 
         [Header("Light color sliders:")]
         public SliderLogic[] sliders_color;
@@ -175,6 +180,7 @@ namespace com.jon_skoberne.UI
             Debug.Log("Disable TF sampling!");
             this.material.DisableKeyword("TF1D_MODE");
             this.material.DisableKeyword("TF2D_MODE");
+            onEventChangeTfDim?.Invoke(TransferFunctionDims.None);
         }
 
         public void EnableTf1dSample()
@@ -182,6 +188,7 @@ namespace com.jon_skoberne.UI
             Debug.Log("Enable TF 1D sampling!");
             this.material.EnableKeyword("TF1D_MODE");
             this.material.DisableKeyword("TF2D_MODE");
+            onEventChangeTfDim?.Invoke(TransferFunctionDims.Dim1);
         }
 
         public void EnableTf2dSample()
@@ -189,6 +196,7 @@ namespace com.jon_skoberne.UI
             Debug.Log("Enable TF 2D sampling!");
             this.material.DisableKeyword("TF1D_MODE");
             this.material.EnableKeyword("TF2D_MODE");
+            onEventChangeTfDim?.Invoke(TransferFunctionDims.Dim2);
         }
         #endregion
 
