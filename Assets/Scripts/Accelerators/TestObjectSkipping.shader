@@ -3,7 +3,7 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _IsoLimit ("IsoMinLimit", Range(0.0, 1.0)) = 0.3
+        _IsoLimit ("IsoMinLimit", Range(0.0, 1.0)) = 0.1
         _ActiveGridTex ("ActiveGrid", 3D) = "" {}
     }
     SubShader
@@ -13,6 +13,7 @@
 
         Pass
         {
+            Cull Off // TODO JUST FOR TEST
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -93,11 +94,18 @@
 
                     float center_intensity = get_max_iso(grid_pos);
                     float3 neighbour_pos = grid_pos + normal;
-                    float neighbour_intensity = get_max_iso(grid_pos);
+                    float neighbour_intensity = get_max_iso(neighbour_pos);
 
                     // to ensure you only generate one quad and not two!
-                    if (!(center_intensity >= _IsoLimit && neighbour_intensity < _IsoLimit)) {
+                    /*if (!(center_intensity >= _IsoLimit && neighbour_intensity <= _IsoLimit)) {
                         //return; // this does not work with just return because it whines that not all fields were set ...
+                        v.vertex = float4(0, 0, 0, 0) / 0; // force vert "discard"
+                        triStream.Append(v);
+                        triStream.RestartStrip();
+                        return;
+                    }*/
+
+                    if (center_intensity < _IsoLimit) {
                         v.vertex = float4(0, 0, 0, 0) / 0; // force vert "discard"
                         triStream.Append(v);
                         triStream.RestartStrip();
