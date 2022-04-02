@@ -88,29 +88,26 @@
                     float3(0.5, 0.5, 0)
                 };
                 
+                float center_intensity = get_max_iso(grid_pos);
+
                 for (int i = 0; i < 6; i++) {
                     float3 normal = normals[i];
                     float3 offset0 = offsets[i];
 
-                    float center_intensity = get_max_iso(grid_pos);
                     float3 neighbour_pos = grid_pos + normal;
                     float neighbour_intensity = get_max_iso(neighbour_pos);
 
                     // to ensure you only generate one quad and not two!
-                    /*if (!(center_intensity >= _IsoLimit && neighbour_intensity <= _IsoLimit)) {
-                        //return; // this does not work with just return because it whines that not all fields were set ...
+                    if (!(center_intensity >= _IsoLimit && neighbour_intensity <= _IsoLimit)) {
+                        // this does not work with just return because it whines that not all fields were set ...
                         v.vertex = float4(0, 0, 0, 0) / 0; // force vert "discard"
+                        v.uv = float2(0, 0);
                         triStream.Append(v);
                         triStream.RestartStrip();
-                        return;
-                    }*/
-
-                    if (center_intensity < _IsoLimit) {
-                        v.vertex = float4(0, 0, 0, 0) / 0; // force vert "discard"
-                        triStream.Append(v);
-                        triStream.RestartStrip();
-                        return;
+                        continue;
                     }
+
+
 
                     // compute the center of the 'quad' we are generating
                     float3 quad_center = grid_pos + 0.5 * normal;
@@ -149,7 +146,7 @@
                 }
             }
 
-            fixed4 frag (g2f i) : SV_Target
+            fixed4 frag(g2f i) : SV_Target
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
