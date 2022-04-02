@@ -37,6 +37,8 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         public delegate void OnRedrawTexture(Texture2D tex);
         public static OnRedrawTexture OnEventRedrawTexture;
 
+        public static int textureDimensions = 2048;
+
         public GameObject tfPoint;
         public Material textureMaterialColors;
         public Material textureMaterialOpacities;
@@ -85,7 +87,6 @@ namespace com.jon_skoberne.TransferFunctionDrawer
         //[Header("RemovePoint")]
         //public GameObject RemovePopup;
 
-        private int textureDimensions = 2048;
         private LinkedList<TransferFunctionPoint> tfPointsColors;
         private LinkedList<TransferFunctionPoint> tfPointsOpacities;
 
@@ -99,11 +100,11 @@ namespace com.jon_skoberne.TransferFunctionDrawer
 
         private void Awake()
         {
-            rt = new RenderTexture(this.textureDimensions, this.textureDimensions, 24, RenderTextureFormat.ARGBFloat);
+            rt = new RenderTexture(TransferFunctionController.textureDimensions, TransferFunctionController.textureDimensions, 24, RenderTextureFormat.ARGBFloat);
             rt.enableRandomWrite = true;
             rt.Create();
 
-            this.transferFunctionTex = new Texture2D(this.textureDimensions, this.textureDimensions, TextureFormat.RGBAFloat, false);
+            this.transferFunctionTex = new Texture2D(TransferFunctionController.textureDimensions, TransferFunctionController.textureDimensions, TextureFormat.RGBAFloat, false);
             this.transferFunctionTex.wrapMode = TextureWrapMode.Clamp;
 
             this.tfPointsColors = new LinkedList<TransferFunctionPoint>();

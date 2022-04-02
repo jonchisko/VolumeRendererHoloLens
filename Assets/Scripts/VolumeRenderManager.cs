@@ -17,6 +17,13 @@ public class VolumeRenderManager : MonoBehaviour
     public static OnChangeTfDim onEventChangeTfDim;
 
     private Texture2D currentTransferTexture;
+    private TransferFunctionDims tfDim;
+
+    void Awake()
+    {
+        this.currentTransferTexture = null;
+        this.tfDim = TransferFunctionDims.None;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -25,7 +32,7 @@ public class VolumeRenderManager : MonoBehaviour
         InitVolumeCube();
         InitHistogram();
         RegisterEvents();
-        onEventChangeTfDim?.Invoke(ido.tex3D, ido.tex3Dgradient, new Texture2D(0, 0), TransferFunctionDims.None);
+        NotifyTfChange();
     }
 
     private void OnDestroy()
@@ -50,11 +57,23 @@ public class VolumeRenderManager : MonoBehaviour
         Debug.Log(this.name + ": Setting texture");
         this.currentTransferTexture = tex;
         ctMaterial.SetTexture("_Transfer2D", this.currentTransferTexture);
+        NotifyTfChange();
     }
 
     private void SetTfDim(TransferFunctionDims tfDim)
     {
-        onEventChangeTfDim?.Invoke(this.ido.tex3D, this.ido.tex3Dgradient, this.currentTransferTexture, tfDim);
+        Debug.Log(this.name + ": Setting tfDim");
+        this.tfDim = tfDim;
+
+        // only notify of tf change if there was any texture to begin with
+        if(this.currentTransferTexture != null) NotifyTfChange();
+    }
+
+    private void NotifyTfChange()
+    {
+        Debug.Log(this.name + ": tf values:");
+        Debug.Log(this.currentTransferTexture + "\n" + this.tfDim.ToString());
+        onEventChangeTfDim?.Invoke(this.ido.tex3D, this.ido.tex3Dgradient, this.currentTransferTexture, this.tfDim);
     }
 
     private void InitVolumeCube()

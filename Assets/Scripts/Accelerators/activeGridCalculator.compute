@@ -55,7 +55,7 @@ void NoneTfActiveGrid(uint3 id : SV_DispatchThreadID)
         int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
-        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+        int3 maxVolPos = min(volPosId + gridCellSize + 1, volumeDims);
 
         float fmax = 0.0;
 
@@ -79,7 +79,7 @@ void Tf1dActiveGrid(uint3 id : SV_DispatchThreadID)
         int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
-        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+        int3 maxVolPos = min(volPosId + gridCellSize + 1, volumeDims);
 
         float fmax = 0.0;
 
@@ -103,7 +103,7 @@ void Tf2dActiveGrid(uint3 id : SV_DispatchThreadID)
         int3 volPosId = gridPosId * gridCellSize;
 
         int3 minVolPos = max(volPosId - 1, int3(0, 0, 0));
-        int3 maxVolPos = min(volPosId + gridDims + 1, volumeDims);
+        int3 maxVolPos = min(volPosId + gridCellSize + 1, volumeDims);
 
         float fmax = 0.0;
 
@@ -111,6 +111,7 @@ void Tf2dActiveGrid(uint3 id : SV_DispatchThreadID)
             for (int j = minVolPos.y; j < maxVolPos.y; j++) {
                 for (int i = minVolPos.x; i < maxVolPos.x; i++) {
                     fmax = max(fmax, sampleTf2d(int3(i, j, k)));
+                    //fmax = max(fmax, sampleTf1d(int3(i, j, k)));
                 }
             }
         }
