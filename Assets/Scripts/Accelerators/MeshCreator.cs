@@ -8,6 +8,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine.Rendering;
+using com.jon_skoberne.Reader;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class MeshCreator : MonoBehaviour
@@ -15,15 +16,20 @@ public class MeshCreator : MonoBehaviour
     [StructLayout(LayoutKind.Sequential)] // Please C# do not optimize the layout
     struct Vertex
     {
-        public float3 position, normal;
-        public half4 tangent;
-        public half2 texCoord0;
-    } // 12B + 12B + 8B + 4B == 36B
+        public float3 position, texCoord0;
+    } // 12B + 12B = 24B
 
     // temporary
     public Texture3D activeGrid;
     public Material objectSkipMaterial;
 
+
+    // TEMPORARY
+    private ImageDataObject ido; 
+    public void SetIdo(ImageDataObject ido)
+    {
+        this.ido = ido;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -67,10 +73,12 @@ public class MeshCreator : MonoBehaviour
     void SetShaderTexture(Texture3D activeGrid)
     {
         this.activeGrid = activeGrid;
-        objectSkipMaterial.SetTexture("_ActiveGridTex", activeGrid);
+        this.objectSkipMaterial.SetTexture("_ActiveGridTex", activeGrid);
+        this.objectSkipMaterial.SetVector("_ActiveGridDims", new Vector4(this.activeGrid.width, this.activeGrid.height, this.activeGrid.depth));
+        this.objectSkipMaterial.SetTexture("_CompTopTex", this.ido.tex3D);
     }
 
-    void CreateCube()
+    /*void CreateCube()
     {
         Debug.Log("Creating Cube in Mesh Creator");
         int vertexCount = 8;
@@ -226,7 +234,7 @@ public class MeshCreator : MonoBehaviour
         // CLEANUP
         verts.Dispose();
         triangleIndices.Dispose();
-    }
+    }*/
 
     void CreateActiveCubes()
     {
@@ -251,9 +259,7 @@ public class MeshCreator : MonoBehaviour
         var vertexAttributesLayout = new[]
         {
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, 0),
-            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3, 0),
-            new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.Float16, 4, 0),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2, 0)
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 3, 0)
         };
         mesh.SetVertexBufferParams(vertexCount, vertexAttributesLayout);
 
@@ -270,10 +276,8 @@ public class MeshCreator : MonoBehaviour
 
             verts[i] = new Vertex
             {
-                position = new Vector3(x, y, z),
-                normal = Vector3.back,
-                tangent = new half4(new half(1), new half(0), new half(0), new half(-1)),
-                texCoord0 = new half2(new half(0), new half(0)),
+                position = new Vector3((float)x / activeGrid.width, (float)y / activeGrid.height, (float)z / activeGrid.depth),
+                texCoord0 = new Vector3(x, y, z),
             };
         }
         mesh.SetVertexBufferData(verts, 0, 0, vertexCount);
@@ -304,5 +308,4 @@ public class MeshCreator : MonoBehaviour
         verts.Dispose();
         pointIndices.Dispose();
     }
-
 }

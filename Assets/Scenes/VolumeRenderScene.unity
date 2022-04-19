@@ -15393,6 +15393,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   volumeCube: {fileID: 1919939108}
   shaderMenuInstance: {fileID: 1698569883}
+  meshCreatorInstance: {fileID: 1602510711}
   histogram1d: {fileID: 93898987}
   histogram2d: {fileID: 140137119}
   ido: {fileID: 11400000, guid: 739521e8a51c7a7409b6907ed09f7bbf, type: 2}

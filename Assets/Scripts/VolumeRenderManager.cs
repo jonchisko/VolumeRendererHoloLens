@@ -7,6 +7,8 @@ public class VolumeRenderManager : MonoBehaviour
 {
     public GameObject volumeCube;
     public ShaderMenu shaderMenuInstance;
+    //TEMPORARY
+    public MeshCreator meshCreatorInstance;
     public HistogramDrawer histogram1d;
     public HistogramDrawer histogram2d;
     public ImageDataObject ido;
@@ -79,6 +81,8 @@ public class VolumeRenderManager : MonoBehaviour
     private void InitVolumeCube()
     {
         shaderMenuInstance.InitializeCubeState(this.ido);
+        //TEMPORARY
+        meshCreatorInstance.SetIdo(this.ido);
     }
 
     private void InitHistogram()
