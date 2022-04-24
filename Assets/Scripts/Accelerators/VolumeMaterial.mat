@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TestMaterial
+  m_Name: VolumeMaterial
   m_Shader: {fileID: 4800000, guid: d2e9e5e2d32b4ab4e884c0f46dff5f7b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -71,7 +71,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _IsoLimit: 0.03
+    - _IsoLimit: 0
     - _IsoLowerLimit: 0.24
     - _IsoUpperLimit: 1
     - _Metallic: 0

@@ -7538,7 +7538,7 @@ GameObject:
   m_Component:
   - component: {fileID: 890068064}
   m_Layer: 0
-  m_Name: TestFolder
+  m_Name: AdvancedVolumeObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
