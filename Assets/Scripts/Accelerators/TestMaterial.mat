@@ -71,7 +71,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _IsoLimit: 0.05
+    - _IsoLimit: 0.03
     - _IsoLowerLimit: 0.24
     - _IsoUpperLimit: 1
     - _Metallic: 0
