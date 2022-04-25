@@ -35,7 +35,9 @@
         _RayBounces("RayBounces", Range(1, 200)) = 50
 
 
+        _StepSize("StepSize", range(0.001, 0.9)) = 0.01
     }
+
     SubShader
     {
         Tags {"Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent"}
@@ -244,26 +246,26 @@
 
             float _IsoLimit;
             texture3D _ActiveGridTex;
-            texture3D _CompTopTex;
+            //texture3D _CompTopTex;
 
             int4 _ActiveGridDims;
             sampler2D _BoundsCoordinatesTexture;
 
             // start "declare extra properties"
             int4 _CompTopTexDims;
-
-
+            sampler3D _CompTopTex;
+            float _StepSize;
 
             // end "declare extra properties"
 
 
             // start "helper functions"
 
-            float trilinear_interpolation(float3 main_pos, texture3D tex3d, int4 tex3dDims) {
+            float3 trilinear_interpolation(float3 main_pos, texture3D tex3d, int3 tex3dDims) {
                 // source: https://en.wikipedia.org/wiki/Trilinear_interpolation
                 // deltas
                 // main_pos has vals from 0.0 to 1.0, need to recalc them to actual tex dims
-                float3 recalc_m_p = main_pos * tex3dDims.xyz;
+                float3 recalc_m_p = main_pos * tex3dDims;
                 int x_min = int(floor(recalc_m_p.x));
                 int x_max = int(ceil(recalc_m_p.x));
                 float x_delta = (recalc_m_p.x - x_min) / (x_max - x_min);
@@ -296,16 +298,17 @@
                 float3 c101 = tex3d.Load(c101_index).rgb;
                 float3 c110 = tex3d.Load(c110_index).rgb;
                 float3 c111 = tex3d.Load(c111_index).rgb;
-                // c00, c01, c10, c11
-                float c00 = c000 * (1.0 - x_delta) + c100 * x_delta;
-                float c01 = c001 * (1.0 - x_delta) + c101 * x_delta;
-                float c10 = c010 * (1.0 - x_delta) + c110 * x_delta;
-                float c11 = c011 * (1.0 - x_delta) + c111 * x_delta;
 
-                float c0 = c00 * (1.0 - y_delta) + c10 * y_delta;
-                float c1 = c01 * (1.0 - y_delta) + c11 * y_delta;
+                // c00, c01, c10, c11, c0, c1, c
+                float3 c00 = c000 * (1.0 - x_delta) + c100 * x_delta;
+                float3 c01 = c001 * (1.0 - x_delta) + c101 * x_delta;
+                float3 c10 = c010 * (1.0 - x_delta) + c110 * x_delta;
+                float3 c11 = c011 * (1.0 - x_delta) + c111 * x_delta;
 
-                float c = c0 * (1.0 - z_delta) + c1 * z_delta;
+                float3 c0 = c00 * (1.0 - y_delta) + c10 * y_delta;
+                float3 c1 = c01 * (1.0 - y_delta) + c11 * y_delta;
+
+                float3 c = c0 * (1.0 - z_delta) + c1 * z_delta;
                 return c;
             }
 
@@ -315,7 +318,9 @@
 
             float getDensity(float3 pos)
             {
-                return _CompTopTex.Load(int4(pos.xyz * float3(512, 512, 125), 0)).r; // TODO use dimensions that are SET!!!!! @Jon
+                //return trilinear_interpolation(pos, _CompTopTex, _CompTopTexDims).r;
+                //return _CompTopTex.Load(int4(pos.xyz * float3(512, 512, 125), 0)).r;
+                return tex3Dlod(_CompTopTex, float4(pos.xyz, 0.0f)).r;
             }
 
             // end "helper functions"
@@ -328,16 +333,18 @@
             {
                 float4 front_pos = tex2Dproj(_BoundsCoordinatesTexture, i.grab_pos);
 
-                const float stepSize = 0.01;
+                const float stepSize = 0.1;
                 float3 rayDir = normalize(front_pos.xyz - i.object_space);
                 float3 rayStartPos = i.object_space;
                 float maxDistance = length(i.object_space - front_pos.xyz);
 
                 float4 maxCol = float4(0.0f, 0.0f, 0.0f, 0.0f);
                 float maxDensity = 0.0f;
-                for (float t = 0.0f; t < maxDistance; t += stepSize) {
-                    const float3 currentPos = rayStartPos + t * rayDir;
-
+                float3 currentPos = rayStartPos;
+                float3 diff_vec = currentPos - front_pos.xyz;
+                float sqr_diff = diff_vec.x * diff_vec.x + diff_vec.y * diff_vec.y + diff_vec.z * diff_vec.z;
+                
+                while(sqr_diff - 0.0 >= _StepSize) {
                     const float density = getDensity(currentPos);
 
                     const float4 col = float4(density, density, density, density);
@@ -345,10 +352,56 @@
                     if (col.w > maxCol.w) {
                         maxCol = col;
                     }
+
+                    currentPos += _StepSize * rayDir;
+                    diff_vec = currentPos - front_pos.xyz;
+                    sqr_diff = diff_vec.x * diff_vec.x + diff_vec.y * diff_vec.y + diff_vec.z * diff_vec.z;
                 }
-                float4 finalCol = maxCol;
-                return finalCol;
+                return maxCol;
             }
+
+            fixed4 frag_mip2(g2f i) : SV_Target
+            {
+                float3 rayEndPos = tex2Dproj(_BoundsCoordinatesTexture, i.grab_pos).xyz;
+                float3 rayStartPos = i.object_space;
+
+                float3 camDir = -normalize(i.object_space - mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1.0)));
+
+                float3 rayDir = normalize(rayEndPos - rayStartPos);
+
+                float4 maxCol = float4(0.0f, 0.0f, 0.0f, 0.0f);
+                float maxDensity = 0.0f;
+
+                float3 currentPos = rayStartPos;
+                //float3 diff_vec = currentPos - front_pos.xyz;
+                //float sqr_diff = diff_vec.x * diff_vec.x + diff_vec.y * diff_vec.y + diff_vec.z * diff_vec.z;
+                for (float t = 0.0; t <= 1.0; t += _StepSize) {
+                    const float density = getDensity(currentPos);
+                    const float4 col = float4(density, density, density, density);
+
+                    if (col.w > maxCol.w) {
+                        maxCol = col;
+                    }
+
+                    currentPos += _StepSize * rayDir;
+                }
+
+
+
+                /*while (currentPos.x < 1.0 && currentPos.y < 1.0 && currentPos.z < 1.0) {
+                    const float density = getDensity(currentPos);
+                    const float4 col = float4(density, density, density, density);
+
+                    if (col.w > maxCol.w) {
+                        maxCol = col;
+                    }
+
+                    currentPos += _StepSize * rayDir;
+                }*/
+                return maxCol;
+            }
+
+
             // end "volume renderers"
 
 
@@ -464,7 +517,7 @@
 
             fixed4 frag(g2f i) : SV_Target
             {
-                fixed4 col = frag_mip(i);
+                fixed4 col = frag_mip2(i);
                 return col;
             }
             ENDCG

@@ -69,7 +69,9 @@ public class MeshCreator : MonoBehaviour
         this.activeGrid = activeGrid;
         this.objectSkipMaterial.SetTexture("_ActiveGridTex", activeGrid);
         this.objectSkipMaterial.SetVector("_ActiveGridDims", new Vector4(this.activeGrid.width, this.activeGrid.height, this.activeGrid.depth));
-        this.objectSkipMaterial.SetTexture("_CompTopTex", this.ido.tex3D);
+        this.objectSkipMaterial.SetTexture("_CompTopTex", this.ido.GetTexture3D(0));
+        this.objectSkipMaterial.SetTexture("_main3DTex", this.ido.GetTexture3D(0));
+        this.objectSkipMaterial.SetVector("_CompTopTexDims", new Vector4(this.ido.GetWidth(), this.ido.GetHeight(), this.ido.GetDepth()));
     }
 
     void CreateActiveCubes()

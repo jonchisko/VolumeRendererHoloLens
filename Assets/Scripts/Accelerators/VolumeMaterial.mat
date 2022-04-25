@@ -47,6 +47,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _GradientTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -63,28 +67,55 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RandomTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Transfer2D:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _G: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _IsoLimit: 0
     - _IsoLowerLimit: 0.24
     - _IsoUpperLimit: 1
+    - _LightPower: 1
+    - _MaxDensityVal: 1
+    - _MaxVal: 1
     - _Metallic: 0
+    - _MinVal: 0
     - _Mode: 0
+    - _NumSteps: 512
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _RayBounces: 50
+    - _RayNumber: 50
+    - _ScaleSuperSample: 0
+    - _Shininess: 1
+    - _SigmaT: 10
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StepSize: 0.041
     - _UVSec: 0
+    - _XRange: 0.5
+    - _YRange: 0.5
+    - _ZRange: 0.5
     - _ZWrite: 1
     m_Colors:
     - _ActiveGridDim: {r: 64, g: 64, b: 15, a: 0}
     - _ActiveGridDims: {r: 64, g: 64, b: 15, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _CompTopTexDims: {r: 512, g: 512, b: 125, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LightPosition: {r: 1, g: 1, b: 1, a: 1}
+    - _Plane: {r: 1, g: 1, b: 1, a: 1}
