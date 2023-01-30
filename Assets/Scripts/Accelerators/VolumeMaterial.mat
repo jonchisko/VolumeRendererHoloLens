@@ -84,7 +84,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _IsoLimit: 0
+    - _IsoLimit: 0.033
     - _IsoLowerLimit: 0.24
     - _IsoUpperLimit: 1
     - _LightPower: 1
@@ -104,7 +104,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StepSize: 0.041
+    - _StepSize: 0.001
     - _UVSec: 0
     - _XRange: 0.5
     - _YRange: 0.5

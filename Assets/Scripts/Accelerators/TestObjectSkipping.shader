@@ -52,7 +52,7 @@
             Cull Back
             ZTest Less
             ZWrite On
-            
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -66,7 +66,7 @@
                 float4 index : TEXCOORD0;
             };
 
-            struct v2g 
+            struct v2g
             {
                 float4 vertex : POSITION;
                 float4 index : TEXCOORD0;
@@ -94,7 +94,7 @@
             // end "helper functions"
 
 
-            v2g vert (appdata v)
+            v2g vert(appdata v)
             {
                 g2f o;
                 o.vertex = v.vertex;
@@ -112,7 +112,7 @@
                 g2f v;
 
                 static float3 normals[6] = {
-                    float3(1, 0, 0), 
+                    float3(1, 0, 0),
                     float3(-1, 0, 0),
                     float3(0, 1, 0),
                     float3(0, -1, 0),
@@ -127,7 +127,7 @@
                     float3(0.5, 0.5, 0),
                     float3(0.5, 0.5, 0)
                 };
-                
+
                 float center_intensity = get_max_iso(grid_index);
                 float3 scaler = _ActiveGridDims.xyz;
                 for (int i = 0; i < 6; i++) {
@@ -138,14 +138,14 @@
                     float neighbour_intensity = get_max_iso(neighbour_index);
 
                     // to ensure you only generate one quad and not two!
-                    if (!(center_intensity >= _IsoLimit && neighbour_intensity < _IsoLimit) 
+                    if (!(center_intensity >= _IsoLimit && neighbour_intensity < _IsoLimit)
                         && (center_intensity < _IsoLimit || neighbour_index.x >= 0)
                         && (center_intensity < _IsoLimit || neighbour_index.y >= 0)
                         && (center_intensity < _IsoLimit || neighbour_index.z >= 0)
                         && (center_intensity < _IsoLimit || neighbour_index.x < _ActiveGridDims.x)
                         && (center_intensity < _IsoLimit || neighbour_index.y < _ActiveGridDims.y)
                         && (center_intensity < _IsoLimit || neighbour_index.z < _ActiveGridDims.z)) {
-                        // this does not work with just return because it whines that not all fields were set ...
+                        // this does not work with just return because it whines that not all fields were set
                         v.vertex = float4(0, 0, 0, 0) / 0; // force vert "discard"
                         v.index = float4(0, 0, 0, 0);
                         v.object_space = float3(0, 0, 0);
@@ -153,7 +153,7 @@
                         triStream.RestartStrip();
                         continue;
                     }
-                    
+
                     // compute the center of the 'quad' we are generating
                     float3 quad_center = grid_pos + 0.5 * normal_ind / scaler;
                     // compute the other offset vector
@@ -171,7 +171,7 @@
                     v.vertex = UnityObjectToClipPos(float4(quad_center + offset0 / scaler, 1.0));
                     v.index = p.index;
                     v.object_space = float3(quad_center + offset0 / scaler);
-                    triStream.Append(v); 
+                    triStream.Append(v);
 
                     //v1
                     v.vertex = UnityObjectToClipPos(float4(quad_center + offset1 / scaler, 1.0));
@@ -388,7 +388,7 @@
 
 
 
-                /*while (currentPos.x < 1.0 && currentPos.y < 1.0 && currentPos.z < 1.0) {
+                while (currentPos.x < 1.0 && currentPos.y < 1.0 && currentPos.z < 1.0) {
                     const float density = getDensity(currentPos);
                     const float4 col = float4(density, density, density, density);
 
@@ -397,7 +397,7 @@
                     }
 
                     currentPos += _StepSize * rayDir;
-                }*/
+                }
                 return maxCol;
             }
 
@@ -517,7 +517,8 @@
 
             fixed4 frag(g2f i) : SV_Target
             {
-                fixed4 col = frag_mip2(i);
+                //fixed4 col = frag_mip2(i);
+                fixed4 col = fixed4(i.object_space.xyz, 1.0);
                 return col;
             }
             ENDCG
